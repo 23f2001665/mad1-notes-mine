@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Validation Demo</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 2rem;
+      background: #f7f7fa;
+    }
+
+    form {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 2rem;
+      max-width: 450px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0 1rem 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    /* === Pseudo-class validation styles === */
+    input:valid {
+      border-color: #28a745;
+      background-color: #eaffea;
+    }
+
+    input:invalid {
+      border-color: #dc3545;
+      background-color: #ffeaea;
+    }
+
+    input:focus:invalid {
+      outline: 2px solid #dc3545;
+    }
+
+    input:required:invalid {
+      background-image: linear-gradient(to right, #ffeaea, white);
+    }
+
+    /* Optional visual feedback */
+    input:required:valid {
+      background-image: linear-gradient(to right, #eaffea, white);
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    input:hover{
+        background-color:black;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h2>HTML5 Validation Showcase</h2>
+
+  <form action="/form" method="POST">
+    <label>Full Name (required, 3–20 chars):
+      <input type="text" name="fullname" required minlength="3" maxlength="20" placeholder="Your Name">
+    </label>
+
+    
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

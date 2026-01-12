@@ -1,0 +1,18 @@
+#e1 {
+    color:aqua;
+    font-size: larger;
+}
+/* apply these styles to those p tags which have c1 class */
+p .c1{
+    color:red;
+    font-weight: bold;
+}
+
+.c1 {
+    color:purple;
+    font-style: italic;
+}
+
+ul > li {
+    color:green;
+}

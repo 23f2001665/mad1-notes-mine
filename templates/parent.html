@@ -1,0 +1,38 @@
+# parent.html  
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>my title</title>
+</head>
+<body>
+    {% set value = 5 %}
+    <h1>main heading</h1>
+    {% block child_content %}
+        <p> from parent file</p>
+        {{ value }}
+    {% endblock %}
+
+    {% block footer %}
+    {% endblock %}
+
+    <h2>This generates that</h2>
+    {% raw %}
+    {% macro fucn1(x) %}
+        <p>Generated from macro.</p>
+        {{x * value}}
+    {% endmacro %}
+    {% endraw %}
+
+    {% macro fucn1(x) %}
+        <p>Generated from macro.</p>
+        {{x * value}}
+    {% endmacro %}
+
+    {{ var1 }}
+
+    {{fucn1(5)}}
+</body>
+</html>

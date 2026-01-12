@@ -1,0 +1,11 @@
+[project]
+name = "code-demo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "faker>=38.2.0",
+    "flask>=3.1.2",
+    "flask-sqlalchemy>=3.1.1",
+]

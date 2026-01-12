@@ -1,0 +1,12 @@
+{% extends 'parent.html' %}
+
+{% block child_content %}
+{{ super() }}
+<p>greeting from child</p>
+{% endblock %}
+
+<p>One other line</p>
+
+{% block footer %}
+    <p>footer of child</p>
+{% endblock %}
