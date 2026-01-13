@@ -2,6 +2,10 @@
 
 The `string.Template` class is part of Python's standard library `string` provides a way to create simple string templates with placeholders that can be replaced with actual values. It uses `$` or `${}` to denote placeholders. It is designed for simpler use cases and is **safer for user input** as it does not allow arbitrary code execution or object discovery.
 
+We have to use the `Template` class from the `string` module to create a template object. We can then use the `substitute()` or `safe_substitute()` methods to replace the placeholders with actual values.
+
+## Example
+
 ``` python
 from string import Template
 template = Template("Hello, my name is $name and I am ${my_age} years old.")
@@ -19,6 +23,21 @@ Output:
 Hello, my name is David and I am 35 years old.
 Hello, my name is Eva and I am 29 years old.
 ```
+
+:::tip
+
+## Try it yourself
+
+copy the following code and paste it into a python file, then run it to see the output
+
+``` python
+from string import Template
+template = Template("Welcome, $user! Your score is $score.")
+result = template.substitute(user="Player1", score=1500)
+print(result)
+```
+
+:::
 
 ## pros
 
@@ -45,7 +64,7 @@ Hello, my name is Eva and I am 29 years old.
 
 :::
 
-### Example of Placeholder Syntax
+### Example
 
 ``` python
 from string import Template
@@ -76,7 +95,7 @@ This costs $5.
 - `substitute()`: Raises a `KeyError` if any placeholders are missing in the provided data.
 - `safe_substitute()`: Leaves placeholders unchanged if they are missing, avoiding exceptions.
 
-### Example of substitute vs safe_substitute()
+### Example
 
 ``` python
 from string import Template
@@ -98,6 +117,23 @@ KeyError: 'place'
 
 KeyError is raised in the second case because `place` is not provided but safe_substitute handles it gracefully returning the placeholder as is.
 
+:::tip
+
+### Try it yourself
+
+copy the following code and paste it into a python file, then run it to see the output
+
+``` python
+from string import Template
+template = Template("Dear $customer, your order #$order_id is confirmed.")
+result1 = template.safe_substitute(customer="John", order_id=12345)
+result2 = template.substitute(customer="John")
+print(result1)
+print(result2)
+```
+
+:::
+
 ---
 
 ## When to Use string.Template
@@ -109,3 +145,12 @@ KeyError is raised in the second case because `place` is not provided but safe_s
 - When you want to avoid the complexity of `f-strings` or `str.format()` for basic use cases.
 
 ---
+
+:::tip
+
+For more complex templating needs, consider using advanced templating engines like Jinja2 which provide more features and flexibility.
+
+For extra details, refer to the [official documentation](https://docs.python.org/3/library/string.html#template-strings-strings)
+
+You can also check out the t-string introduced in python 3.14 for enhanced string templating capabilities [t-strings](https://realpython.com/python-t-strings/).
+:::
