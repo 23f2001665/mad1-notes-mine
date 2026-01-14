@@ -27,7 +27,7 @@ Hello, my name is John and I am 25 years old.
 
 ### pros:
 
-- Safest among all the formatting methods, does not allow any code execution or object discovery.
+- Safer than `f-strings` and `str.format()`, does not allow any code execution or attribute access.
 - Supported in all Python versions.
 - Simple and straightforward for basic formatting needs.
 
@@ -41,7 +41,7 @@ Hello, my name is John and I am 25 years old.
 
 ## str.format() method (Python 2.7+) <a name="str-format-method"></a>
 
-The `str.format()` method allows you to format strings by placing placeholders in the string and then calling the `format()` method with the values to replace those placeholders. `str.format()` replaces placeholders with values and allows **accessing object attributes** and **items**, but **<span style="color:yellow;">does not evaluate Python expressions.</span>**
+The `str.format()` method allows you to format strings by placing placeholders in the string and then calling the `format()` method with the values to replace those placeholders. `str.format()` replaces placeholders with values and allows **accessing object attributes** and **items**, but **does not evaluate Python expressions.**
 
 ``` python
 name1 = "Bob"
@@ -81,13 +81,13 @@ Hello, my name is Charlie and I am 28 years old.
 - Only allows basic substitutions.
 - Not suitable for complex templating needs.
 - Supports attributes and items, but not full expressions, which is safer than f-strings but still can be dangerous in certain contexts.
-- **<span style="color:red;">Security risk if user input is involved in template itself.</span>**
+- **Security risk if user input is involved in template itself.**
 
 ---
 
 ## f-strings (Python 3.6+)  <a name="f-strings"></a>
 
-f-strings or formatted string literals are a way to embed expressions inside string literals, using curly braces `{}`. They are prefixed with the letter `f` or `F`. f-strings allow for **<span style="color:red;">full expression evaluation</span>** inside the curly braces.
+f-strings or formatted string literals are a way to embed expressions inside string literals, using curly braces `{}`. They are prefixed with the letter `f` or `F`. f-strings allow for **full expression evaluation** inside the curly braces.
 
 ``` python
 name = "Alice"
@@ -107,7 +107,7 @@ Hello, my name is Alice and I am 30 years old.
 - More readable and concise.
 - Supports advanced formatting options.
 - Faster than both `%` operator and `str.format()` method.
-- Allows embedding of **<span style="color:red;">any valid Python expression</span>** inside the curly braces.
+- Allows embedding of **any valid Python expression** inside the curly braces.
 
 ### cons
 
@@ -116,7 +116,7 @@ Hello, my name is Alice and I am 30 years old.
 - Template and data live together
 - Evaluated immediately
 - Not reusable as a template
-- **<span style="color:red;">Security risk if user input is directly embedded.</span>**
+- **Security risk if user input is directly embedded**
 
 ---
 
@@ -127,7 +127,6 @@ Hello, my name is Alice and I am 30 years old.
 | Python Version              | All versions        | 2.7+ and 3.x        | 3.6+                |
 | Syntax                      | `%s`, `%d`, etc.    | `{}` placeholders   | `f"{}"` literals |
 | Readability                 | Low                 | Moderate            | High                |
-| Performance                 | Slowest             | Moderate            | Fastest             |
 | Expression Evaluation       | No                  | Limited             | Yes(complete access)                 |
 | Accessing Attributes/Items  | No                  | Yes                 | Yes                 |   
 | Reusability                 | Yes                 | Yes                 | No                  |
@@ -136,24 +135,19 @@ Hello, my name is Alice and I am 30 years old.
 
 ---
 
-::: tip
-
-- **see comparision of string formatting methods in python** [here](https://realpython.com/python-string-formatting/#choosing-the-right-string-formatting-method)
-
-- **see comparsion with templating tools** [here](./jinja2_cheatsheet.md#comparion)
-:::
-
----
-
-::: danger
+:::danger
 **Security Warning:** Avoid using f-strings or `str.format()` with untrusted user input. Both `fstring` and `string.format` allows **dynamic expression evaluation** which can be exploited. Always sanitize and validate any user-provided data before embedding it in strings or simply use safer templating engines like [**string.Template**](./string-templating.md#stringtemplate) or [**jinja2.Template**](./jinja2_cheatsheet.md#jinja2-guide).<br>
 :::
 
-::: tip
-for more information on security risks related to string formatting, refer to this article: [Python String Formatting Security Risks](https://www.geeksforgeeks.org/python/vulnerability-in-str-format-in-python/)
+:::tip
 
-though there are more ways of string formatting in python like '%' operator, and more techniques related to `str.format()` method, we will not be covering them here. But you can refer to the official documentation for more details: [python official documentation](https://docs.python.org/3/library/string.html#formatstrings)
+- **see comparision of string formatting methods in python** [here](https://realpython.com/python-string-formatting/#choosing-the-right-string-formatting-method)
+
+- **see comparsion with templating tools** [here](./jinja2.md#comparison-tables)
+
+- for more information on security risks related to string formatting, refer to this article: [Python String Formatting Security Risks](https://www.geeksforgeeks.org/python/vulnerability-in-str-format-in-python/)
+
+***though there are more ways of string formatting in python like '%' operator, and more techniques related to `str.format()` method, we will not be covering them here. But you can refer to the official documentation for more details: [python official documentation](https://docs.python.org/3/library/string.html#formatstrings)***
 :::
 
 ---
-

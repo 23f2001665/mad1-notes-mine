@@ -24,9 +24,9 @@ Hello, my name is David and I am 35 years old.
 Hello, my name is Eva and I am 29 years old.
 ```
 
-:::tip
+::: tip
 
-## Try it yourself
+**Try it yourself**
 
 copy the following code and paste it into a python file, then run it to see the output
 
@@ -39,14 +39,14 @@ print(result)
 
 :::
 
-## pros
+## Pros
 
 - Simple and easy to use for basic templating needs.
 - Template and data are separated.
 - Available in all Python versions from 2.4 and 3.x.
 - Safe for user input as it does not allow arbitrary code execution.
 
-## cons
+## Cons
 
 - Less flexible than f-strings and `str.format()`.
 - Does not support complex expressions or formatting.
@@ -119,7 +119,7 @@ KeyError is raised in the second case because `place` is not provided but safe_s
 
 :::tip
 
-### Try it yourself
+**Try it yourself**
 
 copy the following code and paste it into a python file, then run it to see the output
 
