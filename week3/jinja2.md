@@ -1,4 +1,4 @@
-# Jinja2 Guide <a name="jinja2-guide"></a>
+# Jinja2 Guide <a id="jinja2-guide"></a>
 
 :::info
 This guide is designed as a compact reference to Jinja2 syntax and features.
@@ -422,43 +422,13 @@ Output:
 
 ### Whitespace Control
 
-Jinja2 provides options to control whitespace around tags using `-` (dash) character. Statements themselves don't include whitespaces but the surounding template does. Consider the following example:
+Jinja2 provides options to control whitespace around tags using `-` (dash) character.
 
-```python
-from jinja2 import Template
-template = Template("""
-   {{% for item in items %}}{{ item }}, {% endfor %}
-   """)
-rendered = template.render(items=["item1", "item2", "item3"])
-print(rendered)
 ```html
-
-Output:
-
-```txt
-
-   item1, item2, item3, 
-
-```
-
-Now the space is not added by Jinja2 but by the template itself. To control this, we can use `-` to trim whitespace.
-
-Example:
-
-```python
-from jinja2 import Template
-template = Template("""
-  {{%- for item in items -%}}
-    {{ item }},{% endfor %}
-""")
-rendered = template.render(items=["item1", "item2", "item3"])
-print(rendered)
-```
-
-Output:
-
-```txt
-item1,item2,item3,
+{{- variable -}}
+{%- if condition -%}
+   Block of code
+{%- endif -%}
 ```
 
 #### Try it yourself
@@ -886,8 +856,6 @@ In this guide, we have explored the key features of Jinja2, a powerful templatin
 - `with` → Variables (block scope, e.g., flash messages)
 - `macro` → Reusable function-like snippets
 - `filters` → Modify data output
-
-When you are confused with what will be rendered, try to think jinja2 as a text manipulating tool than something specific to HTML.
 
 ### Further Reading
 
