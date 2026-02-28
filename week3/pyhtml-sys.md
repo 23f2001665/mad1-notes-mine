@@ -179,7 +179,39 @@ doc = html(
 print(doc)
 ```
 
-:::
+## Attribute Handling in Pyhtml
+
+In `pyhtml`, you can also add attributes to HTML elements. To add attributes, you can pass them as keyword arguments to the functions representing the HTML tags. These attributes need not to a valid attribute in html we can provide any key-value pair and pyhtml will create an attribute out of that pair. For example:
+
+```python
+from pyhtml import html, head, title, body, h1, p
+doc = html(
+    head(
+        title("My Pyhtml Page with Attributes")
+    ),
+    body(
+        h1("Hello, Pyhtml!", style="color: blue;"),
+        p("This is a paragraph with a class and custom attribute.", class_="my-paragraph", gender="female")
+    )
+)
+print(doc)
+```
+
+This will generate the following HTML output:
+
+```html
+<html>
+    <head>
+        <title>My Pyhtml Page with Attributes</title>
+    </head>
+    <body>
+        <h1 style="color: blue;">Hello, Pyhtml!</h1>
+        <p class="my-paragraph" gender="female">This is a paragraph with a class and a custom attribute.</p>
+    </body>
+</html>
+```
+
+Here we added a `style` attribute to the `h1` element and `class` and a custom `gender` attribute to the `p` element. Note that since `class` is a reserved keyword in Python, we used `class_` instead.
 
 ### Comparison between pyhtml and jinja2
 

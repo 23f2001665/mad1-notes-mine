@@ -1,11 +1,7 @@
-# Jinja2 Guide <a id="jinja2-guide"></a>
+# Jinja2 Guide
 
-:::info
-This guide is designed as a compact reference to Jinja2 syntax and features.
-You can read it linearly or jump directly to a section when you need a refresher.
-:::
-
-<div v-pre>
+>This guide is designed as a compact reference to Jinja2 syntax and features.
+>You can read it linearly or jump directly to a section when you need a refresher.
 
 In previous sections, we have discussed about `string.Template` and Python's built-in formatting methods like `f-strings`, `str.format()`, and `%-formatting`. These methods are great for simple string interpolation, but when it comes to generating complex HTML or text documents with appropriate safety measures, a more powerful templating engine is often needed.
 
@@ -258,13 +254,9 @@ rendered = template.render(users=[{"first_name": "John", "last_name": "Doe"}, {"
 print(rendered)
 ```
 
-:::info
-
 - Jinja2 supports looping over lists, tuples, dictionaries, and ranges.
-- we can also use `continue` and `break` statements inside loops.
 - Jinja2 has only `for` loops, no `while` loops.
-
-:::
+- Jinja2 does not support `break` or `continue` statements.
 
 ## Scope, Reusable Blocks and Variable Management
 
