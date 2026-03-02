@@ -39,17 +39,14 @@ We can change the static folder name by passing the `static_folder` parameter wh
 app = Flask(__name__, static_folder='my_static')
 ```
 
-:::info
+> [!NOTE]
+> **How to link static files in templates?**
+> To link static files in our HTML templates, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
+> ```html
+> <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+> ```
+> The function url_for('static', filename='styles.css') generates the correct URL for the `styles.css` file located in the `static` folder. More about this function we will cover in the next module on flask features.
 
-**How to link static files in templates?**
-To link static files in our HTML templates, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
-
-```html
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-```
-
-The function url_for('static', filename='styles.css') generates the correct URL for the `styles.css` file located in the `static` folder. More about this function we will cover in the next module on flask features.
-:::
 
 ## Rendering Templates
 
@@ -173,7 +170,7 @@ This will generate a complete HTML page by combining `base.html` and `home.html`
 
 <TemplateInheritanceViewer />
 
-::: details Explanation
+#### Explanation
 
 ```html
 <!DOCTYPE html>
@@ -200,7 +197,7 @@ This will generate a complete HTML page by combining `base.html` and `home.html`
 
 This demonstrates how template inheritance can be effectively used in Flask applications to create a consistent layout across multiple pages while allowing for dynamic content for each page.
 
-:::
+
 ## Static File Serving
 
 Flask automatically serves static files from the `static` folder. So we can access static files using the `/static/` URL path. For example, if we have a CSS file named `styles.css` in the `static` folder, we can access it in our HTML templates like this:
@@ -231,3 +228,4 @@ In the next module, we will explore how to handle forms and user input in Flask 
 - [Flask Documentation - Templating](https://flask.palletsprojects.com/en/2.3.x/templating/)
 - [Jinja2 Documentation](https://jinja.palletsprojects.com/en/3.1.x/)
 - [HTTP status codes](../week1/1-network-history-TCP.md#status-codes)
+
