@@ -5,22 +5,20 @@ This separation improves modularity, maintainability, scalability, and testabili
 ![](../static/Model-View-Controller-Architecture.png)
 <!-- It was originally introduced by *Trygve Reenskaug* while working at *Xerox PARC Smalltalk* in the late 1970s. -->
 
-::: info Core idea
-What the system knows → **Model**
-How it looks → **View**
-How it responds to user actions → **Controller**
-1. MVC enforces this separation of concerns so that:
-- UI changes don’t break business logic & without the model ever knowing
-- database changes should be possible without views every knowing
-- Business logic is not mixed with HTML templates
-2. State of interaction maintained as part of overall system memory
-3. The web in general does not have the close knit structure of GUI applications
-needed for MVC so be flexible.
+> [!NOTE]
+>  Core idea
+> What the system knows → **Model**
+> How it looks → **View**
+> How it responds to user actions → **Controller**
+> 1. MVC enforces this separation of concerns so that:
+> - UI changes don’t break business logic & without the model ever knowing
+> - database changes should be possible without views every knowing
+> -  Business logic is not mixed with HTML templates
+>  2. State of interaction maintained as part of overall system memory
+>  3. The web in general does not have the close knit structure of GUI applications needed for MVC so be flexible.
 :::
 
-:::tabs
-
-== Model
+#### Model
 **What application knows (data and rules)**
 - Stores Core data for the application and the validation constraints on data
 - Defines relationships between objects
@@ -28,7 +26,7 @@ needed for MVC so be flexible.
 - Performs data manipulation and querying
 - Communicates with databases, files, or external data-APIs
 
-== View
+#### View
 **What user sees (how the model is visually presented)**
 - User-interface of application
 - Defines how information (received from Controller/Model) is presented (`View` is not concerned about how it is stored/processed)
@@ -36,7 +34,7 @@ needed for MVC so be flexible.
 - A View does not control application flow
 - Ex: `HTML pages, server-side templates, forms, rendered charts`
 
-== Controller
+#### Controller
 **What the app does? What should happen on user request? Acts as the bridge between the user and the system**
 - “Business logic” - how to manipulate data
 - Handles user input (clicks, forms, commands)<br>
@@ -44,20 +42,19 @@ needed for MVC so be flexible.
 - Decides which View should be displayed in appropriate places on screen (which role dashboard to show after login)
 Examples: Validating input and triggering model updates
 -
-:::
+
 
 User uses <span style="font-weight:bold; color:rgb(240, 96, 118)"> Controller </span> → updates the <span style="font-weight:bold; color:rgb(98, 151, 208)"> Model </span> → Controller selects a <span style="font-weight:bold; color:rgb(152, 205, 137)"> View </span> → **User** sees rendered data
 
-::: details
-1. User fills Register form and clicks “Submit”
-2. Request goes to the Controller
-	- validates input (`unique email address, integer 10-digit phone number`)
-	- Sends update request to the Model with new user record
-3. `Model` updates the database
-4. `Controller` chooses an appropriate View.
-5. `View` renders updated `Model` data
-6. User sees the result
-:::
+> [!NOTE]
+> 1. User fills Register form and clicks “Submit”
+> 2. Request goes to the Controller
+>   - validates input (`unique email address, integer 10-digit phone number`)
+>   - Sends update request to the Model with new user record
+> 3. `Model` updates the database
+> 4. `Controller` chooses an appropriate View.
+> 5. `View` renders updated `Model` data
+> 6. User sees the result
 
 ## Spreadsheets vs RDBMS vs NoSQL
 
@@ -71,4 +68,5 @@ User uses <span style="font-weight:bold; color:rgb(240, 96, 118)"> Controller </
 | **Failure Handling**           | Manual recovery needed   | Automatic rollback on failure    | Rollback across multiple documents is limited                                            |
 | **Scalability**                | Poor for large datasets                                                                                                                      | Scales well vertically, moderately horizontally                                         | Designed for **horizontal scaling**                                                      |
 | **Best Use Case**              | Small data, analysis, quick calculations                                                                                                     | Structured data, ERP, banking like *Paypal, Visa, Oracle*      | used alongside SQL for Big data, flexible schemas, high-traffic aspects of *Instagram, Netflix, Youtube, Twitter, Swiggy*   |
+
 
