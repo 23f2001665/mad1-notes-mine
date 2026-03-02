@@ -68,9 +68,9 @@ This will generate the following links:
 
 **Note**: The `age` parameter in Bob's profile link is passed as a query parameter since it is not part of the route definition. If a parameter is not defined in the route, it will be added as a query string.
 
-:::info `url_for` with Static Files
-
-To generate links for static files in application, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
+> [!NOTE]
+>  `url_for` with Static Files
+> To generate links for static files in application, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
 
 ```python
 from flask import Flask, url_for
@@ -90,16 +90,11 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-:::
 
-:::warning
-
-**`url_for` only works within application context**
-
-The `url_for` function requires an application context to work properly. This means that we can only use `url_for` within view functions or when the application context is pushed. If we try to use `url_for` outside of an application context, we will encounter a `RuntimeError`.
-
-For example, the following code will raise an error:
-
+> [!WARNING]
+> **`url_for` only works within application context**
+> The `url_for` function requires an application context to work properly. This means that we can only use `url_for` within view functions or when the application context is pushed. If we try to use `url_for` outside of an application context, we will encounter a `RuntimeError`.
+> For example, the following code will raise an error:
 ```python
 from flask import url_for
 
@@ -107,18 +102,16 @@ from flask import url_for
 home_url = url_for('home')
 ```
 
-To avoid this error, make sure to use `url_for` within view functions or use the `app.app_context()` context manager when needed.
+> To avoid this error, make sure to use `url_for` within view functions or use the `app.app_context()` context manager when needed.
 
-:::
 
-:::details Why to use `url_for` instead of hardcoded URLs?
-
-Using `url_for` has several advantages over hardcoding URLs:
-
-1. **Maintainability**: If we change the route of a view function, we only need to update it in one place (the route definition) rather than searching through our code for hardcoded URLs.
-2. **Dynamic URL Generation**: `url_for` can generate URLs based on the current application context, making it easier to handle different environments (development, production, etc.).
-3. **URL Parameters**: `url_for` allows us to pass parameters to routes easily, making it more flexible for dynamic URL generation.
-4. **Avoiding Errors**: Hardcoding URLs can lead to errors if the URL structure changes. Using `url_for` helps prevent broken links in our application.
+> [!IMPORTANT]
+> Why to use `url_for` instead of hardcoded URLs?
+> Using `url_for` has several advantages over hardcoding URLs:
+> 1. **Maintainability**: If we change the route of a view function, we only need to update it in one place (the route definition) rather than searching through our code for hardcoded URLs.
+> 2. **Dynamic URL Generation**: `url_for` can generate URLs based on the current application context, making it easier to handle different environments (development, production, etc.).
+> 3.  **URL Parameters**: `url_for` allows us to pass parameters to routes easily, making it more flexible for dynamic URL generation.
+> 4.  **Avoiding Errors**: Hardcoding URLs can lead to errors if the URL structure changes. Using `url_for` helps prevent broken links in our application.
 :::
 
 ## app.url_map / flask routes
@@ -196,17 +189,14 @@ In this example, when a user accesses the `/old-page` route, they will be redire
 
 When we run this Flask application and navigate to `http://localhost:5000/old-page`, we will be automatically redirected to `http://localhost:5000/new-page`, where we will see the message "This is the New Page!".
 
-:::info
+> [!NOTE]
+> - Though it is very common to use `redirect` along with `url_for`, we can also use it with hardcoded URLs. However, using `url_for` is recommended for the reasons mentioned earlier.
+> - The `redirect` function sends an HTTP *302* response to the client, indicating that the resource has been *temporarily moved to a different URL*.
+> - We can also specify different status codes with the `redirect` function, such as *301 for permanent redirects*.
+> ```python
+> return redirect(url_for('new_page'), code=301)
+> ```
 
-- Though it is very common to use `redirect` along with `url_for`, we can also use it with hardcoded URLs. However, using `url_for` is recommended for the reasons mentioned earlier.
-- The `redirect` function sends an HTTP *302* response to the client, indicating that the resource has been *temporarily moved to a different URL*.
-- We can also specify different status codes with the `redirect` function, such as *301 for permanent redirects*.
-
-```python
-return redirect(url_for('new_page'), code=301)
-```
-
-:::
 
 ## Error Generation, Handling and Custom Error Pages
 
@@ -270,23 +260,18 @@ if __name__ == '__main__':
 
 Now when a 404 or 403 error occurs, Flask will render the corresponding custom error page defined in the `404.html` and `403.html` templates.
 
-:::details `abort` [Error Codes](../week1/1-network-history-TCP.md#status-codes)
-
-By default, the `abort` function can raise only a few HTTP status codes which are defined by underlying **Werkzeug** server. Here is a list of a few of those error codes:
-
-- 400: Bad Request
-- 401: Unauthorized
-- 403: Forbidden
-- 404: Not Found
-- 405: Method Not Allowed
-- 500: Internal Server Error
-
-If we try to `abort(407)` it will throw a **LookupError** instead of a **Proxy Authentication Required** error. The `abort` function can raise only those HTTP status codes that have corresponding `HTTPException` classes in Werkzeug.<br>
-While many common HTTP status codes are supported (404, 403, 401, etc.), some valid HTTP codes like 407 (Proxy Authentication Required) do not have a built-in exception class.<br>
-Attempting to `abort(407)` therefore raises a LookupError. But if we want to raise custom error codes, we can create a custom exception class that inherits from `HTTPException` and define our own status code.
-
-**We can also return the error code directly from the view function without using `abort`. For example:**
-
+> [!IMPORTANT]
+> `abort` [Error Codes](../week1/1-network-history-TCP.md#status-codes)
+> By default, the `abort` function can raise only a few HTTP status codes which are defined by underlying **Werkzeug** server. Here is a list of a few of those error codes:
+> - 400: Bad Request
+> - 401: Unauthorized
+> -  403: Forbidden
+> -  404: Not Found
+> -  405: Method Not Allowed
+> -  500: Internal Server Error
+>  If we try to `abort(407)` it will throw a **LookupError** instead of a **Proxy Authentication Required** error. The `abort` function can raise only those HTTP status codes that have corresponding `HTTPException` classes in Werkzeug.<br> While many common HTTP status codes are supported (404, 403, 401, etc.), some valid HTTP codes like 407 (Proxy Authentication Required) do not have a built-in exception class.<br> Attempting to `abort(407)` therefore raises a LookupError. But if we want to raise custom error codes, we can create a custom exception class that inherits from `HTTPException` and define our own status
+code.
+> **We can also return the error code directly from the view function without using `abort`. For example:**
 ```python
 @app.route('/custom-error')
 def custom_error():
@@ -336,3 +321,4 @@ In the next module, we will explore HTML Forms and how to handle user input in F
 ### Additional resources
 
 - [Flask Documentation - URL Building](https://flask.palletsprojects.com/en/2.3.x/quickstart/#url-building)
+
