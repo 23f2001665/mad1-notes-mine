@@ -21,8 +21,6 @@ Overall, Flask is a great choice for developers who want to build web applicatio
 
 To install Flask, we can use pip, the Python package manager. Open our terminal or command prompt and run the following command:
 
-:::code-group
-
 ```bash[Windows]
 python -m venv flask-env
 flask-env\Scripts\activate
@@ -35,7 +33,6 @@ source flask-env/bin/activate
 pip install Flask
 ```
 
-:::
 
 We should see output indicating that Flask has been successfully installed:
 
@@ -71,25 +68,22 @@ python app.py
 
 This will start the Flask development server, and we can access the application by navigating to `http://127.0.0.1:5000/` in our web browser.
 
-::: tabs
-== terminal
-
+##### terminal
 We will see output similar to this on our terminal:
 ![flask-running-server](../static/4-flask-running-server.png)
 
-== browser
+#### browser
 
 When we access the root URL, we should see "Hello, Flask!" displayed in our browser.
 ![flask-hello-world](../static/4-flask-hello-world.png)
 
-:::
 
-:::details Try it yourself
-
-1. Create a new directory for your Flask application and navigate into it.
-2. Create a new file named `app.py` and copy the example code into it.
-3. Open your terminal or command prompt, navigate to the directory where `app.py` is located, and run the command `python app.py` to start the Flask development server.
-4. Open your web browser and go to `http://localhost:5000/` to see the "Hello, there! This is my first Flask app." message.
+> [!NOTE]
+>  Try it yourself
+> 1. Create a new directory for your Flask application and navigate into it.
+> 2.  Create a new file named `app.py` and copy the example code into it.
+> 3.   Open your terminal or command prompt, navigate to the directory where `app.py` is located, and run the command `python app.py` to start the Flask development server.
+> 4.   Open your web browser and go to `http://localhost:5000/` to see the "Hello, there! This is my first Flask app." message.
 
 ```python
 from flask import Flask
@@ -104,7 +98,6 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-:::
 
 ## URL Structure and Parameters
 
@@ -152,31 +145,24 @@ Flask recognises certain characters as delimiters in URLs. These characters are 
 - `&` (ampersand): Used to separate multiple query parameters.
 - `+` (plus sign): Represents a space character in URL encoding.
 
-:::details routing based on number of occurrences of `/`
+> [!NOTE]
+>  routing based on number of occurrences of `/`
+> If we define a route without a trailing slash, Flask will not match URLs with a trailing slash to that route. For example:
+> ```python
+> @app.route('/about')
+> def about():
+>     return "About Page"
+> ```
+> In this case, accessing `/about/` (with a trailing slash) will result in a 404 error. However, if we define the route with a trailing slash:
+> ```python
+> @app.route('/about/')
+> def about():
+>     return "About Page"
+> ```
+> Now, accessing `/about` (without a trailing slash) will automatically redirect to `/about/`, and the route will be matched successfully.
+> More than one trailing slash: **Flask treats multiple trailing slashes as a single slash**. For example, accessing `/about///` will be treated the same as `/about/`.
+> *This behavior is not very predictable in nature and it is generally recommended to use a single trailing slash for consistency and clarity in our URL design.*
 
-If we define a route without a trailing slash, Flask will not match URLs with a trailing slash to that route. For example:
-
-```python
-@app.route('/about')
-def about():
-    return "About Page"
-```
-
-In this case, accessing `/about/` (with a trailing slash) will result in a 404 error. However, if we define the route with a trailing slash:
-
-```python
-@app.route('/about/')
-def about():
-    return "About Page"
-```
-
-Now, accessing `/about` (without a trailing slash) will automatically redirect to `/about/`, and the route will be matched successfully.
-
-More than one trailing slash: **Flask treats multiple trailing slashes as a single slash**. For example, accessing `/about///` will be treated the same as `/about/`.
-
-*This behavior is not very predictable in nature and it is generally recommended to use a single trailing slash for consistency and clarity in our URL design.*
-
-:::
 
 ## Working of Flask(simplified)
 
@@ -245,7 +231,7 @@ python app.py
 
 We can access the application by navigating to `http://127.0.0.1:5000/` for the home page and `http://127.0.0.1:5000/student/1` to get information about the student with ID 1.
 
-:::details Try it yourself
+##### Try it yourself
 
 ```python
 from flask import Flask
@@ -268,7 +254,6 @@ if __name__ == '__main__':
 
 Here python list will be automatically converted to JSON format by Flask. In older Flask versions, lists had to be wrapped with jsonify() explicitly.
 
-:::
 
 ## Flask Application Structure
 
@@ -300,3 +285,4 @@ In the next module, we will explore template rendering in flask.
 ### Additional resources:
 
 - [Flask Official Documentation](https://flask.palletsprojects.com/)
+
