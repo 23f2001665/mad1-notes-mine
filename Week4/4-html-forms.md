@@ -114,15 +114,11 @@ The `checkbox` input type allows users to select one or more options from a list
 
 We can also add some additional attributes to the checkbox input type but they are similar to the radio input type.
 
-:::info
-
-If we want to select multiple values for the same field, we have to use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example, if multiple checkboxes with the name `fruit` are checked, we can get all selected fruits using:
-
-```python
-selected_fruits = request.form.getlist('fruit')
-```
-
-:::
+> [!NOTE]
+> If we want to select multiple values for the same field, we have to use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example, if multiple checkboxes with the name `fruit` are checked, we can get all selected fruits using:
+> ```python
+> selected_fruits = request.form.getlist('fruit')
+> ```
 
 ### submit Input
 
@@ -180,43 +176,38 @@ We can also add some additional attributes to the option tag:
 - `hidden`: Hides the option from the dropdown list while keeping it in the DOM.
 - `label`: Provides a shorter label for the option, which can be used for accessibility purposes.
 
-:::info Providing a default blank option
-To provide a default blank option in a select dropdown, we can add an option tag with an empty value at the beginning of the select element. This allows users to see a blank option when they first interact with the dropdown.
+> [!NOTE]
+>  Providing a default blank option
+> To provide a default blank option in a select dropdown, we can add an option tag with an empty value at the beginning of the select element. This allows users to see a blank option when they first
+> interact with the dropdown.
+>
+> ```html
+> <select name="cars" id="cars_id">
+> <option value="" disabled selected>Select a car</option>
+> <option value="volvo">Volvo</option>
+> <option value="saab">Saab</option>
+> <option value="fiat">Fiat</option>
+> <option value="audi">Audi</option>
+> </select>
+> ```
+> In this example, the first option has an empty value and is disabled and selected by default. This prompts users to select a car from the dropdown.
 
-```html
-<select name="cars" id="cars_id">
-  <option value="" disabled selected>Select a car</option>
-  <option value="volvo">Volvo</option>
-  <option value="saab">Saab</option>
-  <option value="fiat">Fiat</option>
-  <option value="audi">Audi</option>
-</select>
-```
-
-In this example, the first option has an empty value and is disabled and selected by default. This prompts users to select a car from the dropdown.
-
-:::
-
-:::info Multiple Selection
-
-Same as `checkbox` input type, if we want to select multiple values from the `select` dropdown, we have to add the `multiple` attribute to the `select` tag and use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example:
-
-```html
-<select name="cars" id="cars_id" multiple>
-  <option value="volvo">Volvo</option>
-  <option value="saab">Saab</option>
-  <option value="fiat">Fiat</option>
-  <option value="audi">Audi</option>
-</select>
-```
-
-And in Flask, we can get all selected cars using:
-
-```python
-selected_cars = request.form.getlist('cars')
-```
-
-:::
+> [!NOTE]
+> Multiple Selection
+> Same as `checkbox` input type, if we want to select multiple values from the `select` dropdown, we have to add the `multiple` attribute to the `select` tag and use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example:
+> ```html
+> <select name="cars" id="cars_id" multiple>
+> <option value="volvo">Volvo</option>
+> <option value="saab">Saab</option>
+> <option value="fiat">Fiat</option>
+> <option value="audi">Audi</option>
+> </select>
+> ```
+> And in Flask, we can get all selected cars using:
+>
+> ```python
+> selected_cars = request.form.getlist('cars')
+> ```
 
 ## `file` input
 
@@ -382,3 +373,4 @@ In the next lesson, we will learn how to handle form submissions and process the
 - [MDN Web Docs - Input types](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
 - [MDN Web Docs - Select element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/select)
 - [MDN Web Docs - Textarea element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea)
+
