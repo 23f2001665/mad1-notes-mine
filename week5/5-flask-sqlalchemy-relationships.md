@@ -15,7 +15,7 @@ class Article(db.Model):
     article_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String)
     content = db.Column(db.String)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Article Many-to-Many if not unique=True
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))  # Foreign key in Article 
     author = db.relationship("User", back_populates="articles")  # Many articles to one user
 ```
 ##### Many-to-Many
@@ -42,8 +42,13 @@ class ArticleAuthors(db.Model):
 ```
 
 - Use `db.relationship()` for convenience, especially for bidirectional access.
-- For many-to-many, use an association table with two foreign keys and `secondary` in relationships.
+- For many-to-many, use an association table with two foreign keys and `secondary` in relationships. secondary=user_articles → tells SQLAlchemy it's `many-to-many`
+- back_populates connects both sides
+
 #### one-to-one
 add `unique=True` constraint on the foreign key column.
+```py
+user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Article
+```
 ![](../static/one-many-PYQ.png)
 :::
