@@ -15,7 +15,7 @@ class Article(db.Model):
     article_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String)
     content = db.Column(db.String)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))  # Foreign key in Article
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Article Many-to-Many if not unique=True
     author = db.relationship("User", back_populates="articles")  # Many articles to one user
 ```
 ##### Many-to-Many
