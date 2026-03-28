@@ -417,6 +417,18 @@ if __name__ == '__main__':
         - `http://localhost:5000/delete_user/jane_smith` to delete user "jane_smith".
         - `http://localhost:5000/delete_user/robert_johnson` to delete user "robert_johnson".
 
+## Extra: States of SQLAlchemy Objects
+
+:::details Click to expand states of SQLAlchemy objects
+In SQLAlchemy, objects can be in one of the following states:
+
+- **Transient**: An object that has been created but is not yet associated with a session. It is not yet persisted in the database.
+- **Pending**: An object that has been added to a session but has not yet been committed to the database. It is scheduled to be persisted in the database when the session is committed.
+- **Persistent**: An object that is associated with a session and has been committed to the database. It is persisted in the database and can be queried and updated.
+- **Detached**: An object that was previously associated with a session but has been removed from the session. It is not currently associated with any session and is not persisted in the database.
+- **Deleted**: An object that has been marked for deletion from the database. It is scheduled to be removed from the database when the session is committed.
+:::
+
 ## Summary
 
 In this section, we learned how to use Flask-SQLAlchemy to setup flask-sqlalchemy, define models, create database tables, and interact with the database. We also explored how to manage application contexts in Flask applications.

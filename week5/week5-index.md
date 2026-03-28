@@ -18,7 +18,7 @@ By the end of this week, you should be able to:
 
 ### Topics Covered
 
-- **[Business Logic Layer – Controllers](5-business-logic-layer-CONTROLLER.md)**<br>
+- **[Business Logic Layer – Controllers](5-curl-server.md)**<br>
   Controller responsibilities, and `curl` commands for HTTP request-response
 
 - **[CRUD Operations & API Design](5-CRUD-API.md)**<br>

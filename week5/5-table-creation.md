@@ -476,8 +476,6 @@ SELECT * FROM articles WHERE user_id IN (?, ?, ?, ...);  -- This query is execut
 
 - Can lead to increased load time due to multiple queries being executed.
 
-:::
-
 ### Lazy Loading - Dynamic Loading
 
 Load the related data using a separate query that is executed when the relationship attribute is accessed for the first time. This can be more efficient than lazy loading when you need to access the related data for multiple records, but you want to have more control over the query.
@@ -606,7 +604,105 @@ SELECT * FROM users LIMIT 1;  -- This query is executed when we access the user
 
 - Can lead to confusion if you forget that the related data is not loaded automatically and that accessing it will raise an error.
 
+:::
+
+## Cascade Options
+
+Cascade options define how changes to a parent object should affect related child objects in a relationship. Cascade happens when you perform operations like delete, update, or save on a parent object, and you want those operations to automatically propagate to related child objects.
+
+Cascade options can be specified in ForiegnKey or in relationship using `cascade` parameter. Let's see both of the cases in details.
+
+### ForeignKey Cascade Options
+
+When defining a foreign key in a model, you can specify cascade options using the `ondelete` and `onupdate` parameters. These options determine what happens to related records when a parent record is deleted or updated.
+For example:
+
+```python
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    articles = db.relationship('Article', back_populates='author')
+
+class Article(db.Model):
+    __tablename__ = 'articles'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE', onupdate='CASCADE'))
+    author = db.relationship('User', back_populates='articles')
+```
+
+In this example, we have specified `ondelete='CASCADE'` and `onupdate='CASCADE'` for the `user_id` foreign key in the `Article` model. This means that if a `User` record is deleted, all related `Article` records will also be deleted automatically. Similarly, if a `User` record is updated, the corresponding foreign key values in the related `Article` records will also be updated automatically.
+
+#### Cascade Options for Foreign Keys
+
+| Option     | Description                                                                 |
+| ---------- | --------------------------------------------------------------------------- |
+| `CASCADE`  | Deletes or updates related records when the parent record is deleted or updated. |
+| `SET NULL` | Sets the foreign key to NULL in related records when the parent record is deleted or updated. |
+| `SET DEFAULT` | Sets the foreign key to its default value in related records when the parent record is deleted or updated. |
+| `RESTRICT` | Prevents deletion or update of the parent record if there are related records. |
+| `NO ACTION` | Similar to RESTRICT, but the check is deferred until the end of the transaction. |
+| `ON DELETE` | Specifies the action to take when a parent record is deleted. |
+| `ON UPDATE` | Specifies the action to take when a parent record is updated. |
+| `NONE`     | No action is taken on related records when the parent record is deleted or updated. |
+
+:::warning NOTE
+By default, `sqlite3` does not enforce foreign key constraints, so you need to enable it explicitly by executing `PRAGMA foreign_keys = ON;` after establishing a connection to the database. In other databases like PostgreSQL and MySQL, foreign key constraints are enforced by default. You can enable foreign key constraints in SQLite by adding the following code to your application:
+
+```python
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+```
+
+without enabling foreign key constraints, the cascade options specified in the foreign key definition will not be enforced, and related records will not be automatically deleted or updated when a parent record is deleted or updated. This leads to potential data integrity issues, as orphaned records may remain in the database without the expected cascading behavior.
+:::
+
+### Relationship Cascade Options
+
+When defining a relationship in a model, you can specify cascade options using the `cascade` parameter in the `db.relationship()` function. These options determine what happens to related records when a parent record is deleted, updated, or saved.
+For example:
+
+```python
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    articles = db.relationship('Article', back_populates='author', cascade='all, delete-orphan')
+
+class Article(db.Model):
+    __tablename__ = 'articles'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    author = db.relationship('User', back_populates='articles')
+```
+
+In this example, we have specified `cascade='all, delete-orphan'` for the `articles` relationship in the `User` model. This means that if a `User` record is deleted, all related `Article` records will also be deleted automatically (due to the `all` option). Additionally, if an `Article` record is removed from the `articles` relationship of a `User`, it will be automatically deleted from the database (due to the `delete-orphan` option).
+
+#### Common Cascade Options in Relationships
+
+| Option          | Description                                                                 |
+| --------------  | --------------------------------------------------------------------------- |
+| `all`           | Applies all cascade options (delete, delete-orphan, save-update, merge, refresh-expire)|
+| `delete`        | Deletes related records when the parent record is deleted.|
+| `delete-orphan` | Deletes related records that are removed from the relationship. |
+| `save-update`   | Saves or updates related records when the parent record is saved or updated. |
+| `merge`         | Merges related records when the parent record is merged. |
+| `refresh-expire`| Refreshes or expires related records when the parent record is refreshed or expired. |
+| `none`          | No cascade behavior is applied. |
+
+### Difference between ForeignKey Cascade and Relationship Cascade
+
+The cascade options specified in a foreign key definition (using `ondelete` and `onupdate`) are enforced at the database level, while the cascade options specified in a relationship definition (using the `cascade` parameter in `db.relationship()`) are enforced at the application level by SQLAlchemy's ORM.
+
+The ORM level restrictions can be bypassed by executing raw SQL queries directly against the database, while the database level restrictions cannot be bypassed and will always be enforced regardless of how the data is manipulated.
+
 ## Summary
 
 In this module, we have learned how to create tables and models in Flask SQLAlchemy, define relationships between tables, and understand different loading strategies for related data. We have also seen the equivalent SQL commands for creating tables and loading related data. Understanding these concepts is crucial for effectively using Flask SQLAlchemy to manage your database and optimize performance when working with related data.
-

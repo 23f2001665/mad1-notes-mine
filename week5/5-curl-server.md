@@ -10,13 +10,16 @@
 ##### minimal HTTP server
 
 ```bash
- while true; do 
-    echo -e "HTTP/1/1 200 OK\n\n $(date)" |
+ while true; do # Runs the loop forever so, server keeps listening after each request
+    echo -e "HTTP/1/1 200 OK\n\n $(date)" | # inserts current date dynamically
     nc -l localhost 1500;
  done
 ```
 
-- Listens on port 1500 & sends the current date as the HTTP response
+`nc` = `netcat` (simple networking tool)
+`-l` = listen mode  on port `1500`(acts like a server)
+
+- When a client connects on port `1500` → sends current date as HTTP response from `echo` -> restarts and waits again
 
 ##### Python Built-in HTTP Server
 
@@ -51,8 +54,8 @@ Content-Length: <file-size> #10KB
 
 ::: warning loopback addresses
  `127.0.0.1 (IPv4)` and `::1 (IPv6)` are **loopback** addresses. Packets sent to these addresses:
-    - Never leave the host machine & are looped through the network interface card only.
-    - This can be used for **diagnostic** purposes to verify that the internal path through the TCP/IP protocols is working.
+- Never leave the host machine & are looped through the network interface card only.
+- This can be used for **diagnostic** purposes to verify that the internal path through the TCP/IP protocols is working.
 :::
 
 <CurlRestAPI />

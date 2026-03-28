@@ -45,8 +45,7 @@ Now we can run this script and access the API by navigating to `http://localhost
 == Browser
 ![Browser showing JSON response](../static/week6/6-browser.png)
 == Thunder Client
-**click on the image to view in other page**
-<a href="../static/week6/6-thunder-client.png" target="_blank" title="click to view on other page">![Thunder Client showing JSON response](../static/week6/6-thunder-client.png)</a>
+![Thunder Client showing JSON response](../static/week6/6-thunder-client.png)
 == curl
 ![curl showing JSON response](../static/week6/6-curl.png)
 :::
@@ -521,7 +520,44 @@ if __name__ == '__main__':
 
 In this example, we have defined a custom error handler for 404 errors that returns a JSON response with a custom message. When a GET request is made to the `/item/<int:item_id>` endpoint and the item is not found in the database, the API will return a 404 status code along with the custom error message defined in our error handler. This allows us to provide more informative and user-friendly error responses in our API.
 
-Summary:
+## Custom Error: HTTPException
+
+Flask Restful allows us to define custom error handlers for specific error scenarios. We can create a custom error class that inherits from `HTTPException` and define our own error message and status code. Here's an example of how to create a custom error handler:
+
+```python
+from flask import Flask
+from flask_restful import Resource, Api
+from werkzeug.exceptions import HTTPException
+
+app = Flask(__name__)
+api = Api(app)
+class CustomError(HTTPException):
+    def __init__(self, message, status_code):
+        super().__init__(description=message)
+        self.code = status_code
+
+@app.errorhandler(CustomError)
+def handle_custom_error(error):
+    response = {
+        'message': error.description,
+        'status_code': error.code
+    }
+    return response, error.code
+```
+
+In this example, we have defined a custom error class called `CustomError` that inherits from `HTTPException`. This class takes a message and a status code as parameters. We then define an error handler for `CustomError` that returns a JSON response with the error message and status code. We can raise this custom error in our resource methods whenever we want to return a specific error response:
+
+```python
+class Item(Resource):
+    def get(self, item_id):
+        item = Purchase.query.get(item_id)
+        if item:
+            return {'name': item.item_name, 'price': 10.99, 'category': 'electronics'}
+        else:
+            raise CustomError('Item not found', 404)
+```
+
+## Summary
 
 - Flask Restful is an extension for Flask that makes it easier to build REST APIs.
 - We can define resources as classes and handle different HTTP methods in a structured way.

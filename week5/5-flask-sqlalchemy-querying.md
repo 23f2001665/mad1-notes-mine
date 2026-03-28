@@ -163,7 +163,7 @@ print(all_users)  # [<User Alice>, <User Bob>, <User Charlie>, <User David>, <Us
 
 ### `.scalar`
 
-The `.scalar` method is used to retrieve a single value from the query. It returns the value of the first column of the first record that matches the query criteria. If no records match the criteria, it returns `None`.
+The `.scalar` method is used to retrieve a single value from the query. It returns the value of the first column of the first record that matches the query criteria. If no records match the criteria, it returns `None`. If there are more than one record that matches the criteria, it raises an exception.
 
 ```python
 # Get the username of the first user
@@ -188,17 +188,6 @@ The `.count` method is used to count the number of records that match the query 
 user_count = db.session.query(User).count()
 print(user_count)  # 5
 ```
-
-<!-- ### `.exists`
-
-The `.exists` method is used to check if any records match the query criteria. It returns `True` if at least one record matches the criteria, and `False` otherwise.
-
-```python
-exists = db.session.query(User).filter_by(username='Alice').exists()
-print(exists)  # True
-exists = db.session.query(User).filter_by(username='Zoe').exists()
-print(exists)  # False
-``` -->
 
 ### `.distinct`
 
@@ -573,7 +562,7 @@ While Flask-SQLAlchemy provides a powerful and flexible ORM for querying the dat
 # Execute a raw SQL query to get all users
 from sqlalchemy import text
 
-db.session.execute(text("SELECT * FROM users"))
+result = db.session.execute(text("SELECT * FROM users"))
 users = result.fetchall()
 print(users)
 ```
@@ -593,4 +582,34 @@ print(users)  # [<User Alice>, <User David>]
 
 In this section, we have not covered querying across relationships and joining tables. This is a more advanced topic that involves understanding how to define relationships between models and how to query across those relationships using joins. We will cover this topic in more detail in a later section when we discuss relationships in Flask-SQLAlchemy.
 
+:::
+
+## Summary
+
+In this section, we have covered various methods for querying the database using Flask-SQLAlchemy. These methods can be broadly classified into two categories:
+
+1. Execution (Terminal) Methods:
+   These methods execute the query and return results. Once called, the SQL query is sent to the database.
+
+   Examples:
+   - .first() → first row or None
+   - .one() → exactly one row (strict)
+   - .all() → list of rows
+   - .scalar() → single value (strict in modern versions)
+   - .scalars() → list of values (first column)
+   - .count() → integer count
+
+2. Query Modifying Methods:
+   These methods modify the query object and return a new query object. They do not execute the query.
+
+   Examples:
+   - .filter()
+   - .filter_by()
+   - .order_by()
+   - .limit()
+   - .offset()
+   - .distinct()
+
+:::info Note:
+SQLAlchemy queries are lazy. The query is not executed until an execution method is called.
 :::

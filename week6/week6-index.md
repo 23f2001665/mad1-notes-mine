@@ -17,11 +17,11 @@ By the end of this week, you should be able to:
 
 ### Topics Covered
 
-- **[REST APIs and Data Exchange](6-REST-APIs.md)**
+- **[REST APIs and Data Exchange](6-REST-APIs)**
   REST constraints, CRUD mapping with HTTP verbs, idempotent operations, JSON data transfer and API design example.
 
 - **[Flask RESTful Basics](6-flask-restful-basics.md)**
   Creating REST APIs using `Flask-RESTful`, resource routing, endpoint mapping, request parsing using `reqparse`, and response formatting with `marshal_with`
 
 - **[OpenAPI Specification & Testing](6-openapi-specification.md)**
-  Introduction to OpenAPI, YAML/JSON API description/schema using `Swagger UI` and testing APIs using `CURL, Postman`
+  Introduction to OpenAPI, YAML/JSON API description/schema using `Swagger UI` and testing APIs using `CURL, Postman/Thunder Client`
