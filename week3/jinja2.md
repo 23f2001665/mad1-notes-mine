@@ -258,21 +258,40 @@ print(rendered)
 - Jinja2 has only `for` loops, no `while` loops.
 - Jinja2 does not support `break` or `continue` statements.
 
-## Scope, Reusable Blocks and Variable Management
+# Scope, Reusable Blocks and Variable Management
 
 Jinja2 provides mechanisms to define and manage variables within templates. This includes setting variables, scoping them, and creating reusable components.
 
+### Scopes in Jinja2
+
+A scope defines the visibility and lifetime of variables. In Jinja2, variables can be defined in different scopes, and their accessibility depends on where they are defined.There are three types of scopes in Jinja2: global scope, block scope, and loop scope.
+
+#### Global Scope
+
+Variables defined in the global scope are accessible throughout the entire template. They can be set using the `set` statement and can be accessed anywhere in the template after they are defined.
+
+#### Block Scope
+
+Variables defined within a block (e.g., within a `with` statement) are only accessible within that block and its nested blocks. They are not accessible outside of the block.
+
+#### Loop Scope
+
+Variables defined within a loop (e.g., loop variables) are only accessible within the loop. They cannot be accessed outside of the loop. Each iteration of the loop creates a new scope for the loop variable.
+
 ### Set Statement (Global Variables)
 
-We can define variables using the `set` statement. Variables defined with `set` are available in the entire template after their declaration.
+We can define variables using the `set` statement. Variables defined with `set` are available in the entire **scope** where they are declared and after their declaration.
 
 ```html
+
+<p>{{ variable }}</p>  <!-- undefined here -->
 {% set variable = value %}
+<p>{{ variable }}</p>  <!-- defined here -->
 ```
 
-Example:
+:::code-group
 
-```python
+```python [Example #6]
 from jinja2 import Template
 template = Template("""
   {% set total = price * quantity %}
@@ -282,13 +301,56 @@ rendered = template.render(price=19.99, quantity=3)
 print(rendered)
 ```
 
-Output:
-
-```html
+```html [output]
   <p>Total Price: $59.97</p>
 ```
 
+:::
+
+- Variable defined with `set` takes the scope of the block where it is defined and is accessible in that block and any nested blocks. If defined in the global scope, it is accessible throughout the entire template after its declaration.
+
+A variable defined with `set` cannot be modified inside loops or blocks. If we try to set a variable inside a loop or block, it will not affect the variable outside that block.
+
+A follow up question become then how we can accumulate values in a variable across iterations of a loop? We will see that in the next section using `namespace`.
+
+### Namespace (Mutable Objects)
+
+Jinja2 provides a `namespace` class that can be used to create mutable objects that can be modified within loops and blocks. This allows us to create mutable variables that can be updated across iterations of a loop or within blocks.
+
+:::code-group
+
+```python [Example #7]
+from jinja2 import Template
+template = Template("""
+{% set ns2 = namespace(total=0) %}
+{% set ns1 = namespace(total=0) %}
+{% for i in range(5) %}
+  {% set ns1.total = ns1.total + i %}
+    {% set ns2.total = ns2.total + i*2 %}
+{% endfor %}
+<p>Total in ns1: {{ ns1.total }}</p>
+<p>Total in ns2: {{ ns2.total }}</p>
+""")
+rendered = template.render()
+print(rendered)
+```
+
+```html [output]
+<p>Total in ns1: 10</p>
+<p>Total in ns2: 20</p>
+```
+
+:::info
+
+- Each namespace object is a separate mutable object that can hold multiple attributes. We can 
+use it to store and update multiple related variables together.
+- The namespace object follows normal variable scope, but its attributes can be mutated across inner scopes because the object reference is shared.
+
+:::
+
 ### With Statement (Scoped Variables)
+
+Like `set`, but manually defined scope. Variables defined with `with` are only accessible within that block and its nested blocks.
 
 ```html
 {% with x = 5 %}
@@ -300,11 +362,9 @@ Output:
 
 **Note**: undefined variables are rendered as empty strings by default.
 
-Like `set`, but limited to block scope.
+:::code-group
 
-Example:
-
-```python
+```python [Example #7]
 from jinja2 import Template
 template = Template("""
   {% with discount = price * 0.1 %}
@@ -316,12 +376,41 @@ rendered = template.render(price=100)
 print(rendered)
 ```
 
-Output:
-
-```html
+```html [output]
   <p>Discount: $10.0</p>
   <p>Discount outside block: $</p>  {# undefined here #}
 ```
+
+:::
+
+**Important Gotcha**: Look at the following code snippet, and try to guess the output before running it.
+
+```python
+from jinja2 import Template
+template = Template("""
+  {% set x = 10 %}
+  <p>Value of x: {{ x }}</p>
+  {% for i in range(5) %}
+    {% set x = x + i %}
+  {% endfor %}
+  <p>Value of x after loop: {{ x }}</p>
+""")
+rendered = template.render()
+print(rendered)
+```
+
+:::details Output and Explanation
+
+Output:
+
+```html
+  <p>Value of x: 10</p>
+  <p>Value of x after loop: 10</p>
+```
+
+In this example, the variable `x` is defined in the global scope with an initial value of `10`. Inside the loop, we attempt to set `x` to the value of `i` for each iteration. However `set x = i` statement inside the loop does not actually modify the global variable `x`. Therefore, after the loop, `x` still retains its original value of `10`.
+
+:::
 
 ### Macros (Reusable Blocks)
 
@@ -329,7 +418,7 @@ Jinja2 macros are similar to functions in programming languages. They allow us t
 
 - Macros return the entire block enclosed within them.
 - Macros can be defined in the same template or imported from other templates.
-- Macros may include parameters with default values.
+- Macros may include **parameters** with default values.
 
 ```html
 {% macro macro_name(param1, param2="default") %}
@@ -339,9 +428,9 @@ Jinja2 macros are similar to functions in programming languages. They allow us t
 {{# now macro_name("value1", "value2") is a macro that can be called in templates #}}
 ```
 
-Example:
+:::code-group
 
-```html
+```html [Example #8]
 {% macro render_input(name, type="text") %}
   <input type="{{ type }}" name="{{ name }}" />
 {% endmacro %}
@@ -350,12 +439,12 @@ Example:
 {{ render_input("password", type="password") }}
 ```
 
-Output:
-
-```html
+```html [output]
   <input type="text" name="username" />
   <input type="password" name="password" />
 ```
+
+:::
 
 #### Importing Macros
 
@@ -369,9 +458,7 @@ We can import macros from other templates using `import` or `from ... import` st
 {{ render_input("email") }}
 ```
 
-:::tip
-
-### Try it yourself
+:::details **Try it yourself**
 
 copy the following code and paste it into a python file, then run it to see the output
 
@@ -391,6 +478,15 @@ print(rendered)
 ```
 
 :::
+
+### Different Blocks and their scopes
+
+| Construct   | What it does                                            |
+| ----------- | ------------------------------------------------------- |
+| `set`       | Assigns variable within current scope                   |
+| `with`      | Creates a new limited scope                             |
+| `namespace` | Provides a mutable object that bypasses scope isolation |
+| `macro`     | Defines a reusable block that can accept parameters     |
 
 ## Escaping and Whitespace Control
 
