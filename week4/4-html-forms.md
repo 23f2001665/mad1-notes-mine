@@ -16,6 +16,13 @@ Here is an example of a simple HTML form:
 
 In this example, the form has two input fields for the user's name and email address, and a submit button. The `action` attribute specifies the URL where the form data will be sent, and the `method` attribute indicates that the form will use the POST method to send data.
 
+:::info
+
+- `GET` method appends the form data to the URL in name/value pairs, which is visible in the browser's address bar. It is suitable for non-sensitive data and when bookmarking or sharing the URL is desired.
+- `POST` method sends the form data in the body of the HTTP request, which is not visible in the URL. It is more secure for sensitive data and is generally used for form submissions that modify server-side data.
+
+:::
+
 Any data sent through an HTML form should have `name` and `value` attributes for every data field. The `name` attribute represent the **key** and `value` attribute represent the **value** in the form data.
 
 After submission, the browser encodes the form data as key–value pairs (derived from name and user-entered values) and sends it to the server using the specified encoding method. For example, if a user enters "John Doe" as the name and enters `john.doe@example.com` as the email, the form data will be sent to the server somewhat similar to the following format:
@@ -70,6 +77,7 @@ These attributes can be used be all `<input>` tags:
 - `disabled`: Disables the input field, preventing user interaction, submission and transmission over the network.
 - `title`: Provides additional information about the input field, usually displayed as a tooltip.
 - `readonly`: Makes the input field read-only, preventing user modification.
+- `hidden`: Hides the input field from the user while keeping it in the DOM and allowing it to be submitted with the form.
 
 ### email Input
 
@@ -123,6 +131,22 @@ selected_fruits = request.form.getlist('fruit')
 ```
 
 :::
+
+### Date-Time Input
+
+```html
+<input type="datetime-local" name="appointment" id="appointment_id">
+```
+
+This creates a date-time input field that allows users to select both a date and a time. The `datetime-local` input type does not include timezone information. The value entered in this field will be sent to the server in the format `YYYY-MM-DDTHH:MM` (e.g., `2024-06-01T14:30`).
+
+### reset Input
+
+```html
+<input type="reset" value="Reset Form">
+```
+
+This creates a reset button that, when clicked, will reset all form fields to their default values. The `value` attribute specifies the text displayed on the button. The `reset` input type does not support additional attributes like other input types, but we can use the `form` attribute to associate the button with a specific form if needed.
 
 ### submit Input
 

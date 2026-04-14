@@ -141,6 +141,40 @@ Here `post_id` is defined as an integer so when a client types a value flask wil
 
 Similar to `int` flask supports other variable types like `float`, `path` (which accepts slashes), and `uuid` and the default type is `string`.
 
+:::details types-conversion of path parameters
+
+There are several types of path parameters that Flask supports, each with its own conversion rules:
+
+- **string**: This is the default type. It accepts any text without a slash (`/`). For example, `<username>` will match `john` but not `john/doe`.
+- **int**: This type accepts integer values. For example, `<int:post_id>` will match `/post/123` but not `/post/abc`.
+- **float**: This type accepts floating-point values. For example, `<float:price>` will match `/product/19.99` but not `/product/abc`. **It must have a decimal point to be recognized as a float**, so `/product/19` will not match `<float:price>` and produce a 404 error.
+- **path**: This type accepts any text including slashes (`/`). For example, `<path:subpath>` will match `/user/john/profile` and capture the entire path.
+- **uuid**: This type accepts UUID values. For example, `<uuid:task_id>` will match `/task/123e4567-e89b-12d3-a456-426614174000` but not `/task/invalid`.
+
+Different types of path parameters overload the same URL pattern and Flask will try to match them in the order they are defined. If a path parameter matches multiple types, Flask will use the first one that matches. For example, if we have the following routes:
+
+```python
+@app.route('/item/<int:item_id>')
+@app.route('/item/<string:item_id>')
+@app.route('/item/<float:item_id>')
+def get_item_by_id(item_id):
+    return f'Item ID: {item_id} type of {type(item_id)}'
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+```bash
+user$ flask routes
+Endpoint         Methods  Rule
+---------------- -------  ----------------------
+get_item_by_id   GET      /item/<int:item_id>
+get_item_by_id   GET      /item/<string:item_id>
+get_item_by_id   GET      /item/<float:item_id>
+```
+
+As we can observe, the endpoint with same variable `item_id` is overloaded with three different types and produced three different mapping.
+
 ### Delimiters in URL
 
 Flask recognises certain characters as delimiters in URLs. These characters are used to separate different parts of the URL and have special meanings. Some common delimiters include:
