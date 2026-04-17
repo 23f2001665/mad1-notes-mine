@@ -6,6 +6,22 @@ In week 4 we have learned about how to create a Flask application, how to define
 
 SQLAlchemy is a popular Object-Relational Mapping (ORM) library for Python. It provides a high-level interface for working with databases, allowing developers to interact with the database using Python objects instead of writing raw SQL queries.
 
+## What is ORM
+
+ORM (Object-Relational Mapping) is a technique that allows developers to interact with a database using object-oriented programming concepts. Instead of writing raw SQL queries, developers can use Python classes and objects to represent database tables and rows.
+
+so instead of doing
+
+```sql
+SELECT * FROM users WHERE id = 1;
+```
+
+we can do this
+
+```python
+users = User.query.get(1)
+```
+
 ## What is Flask-SQLAlchemy?
 
 Flask-SQLAlchemy is an extension for Flask that adds support for SQLAlchemy. It provides a simple and convenient way to integrate SQLAlchemy into our Flask applications, allowing us to define our database models and interact with the database using Python code. In our course, we will be using Flask-SQLAlchemy to manage our database interactions in our Flask applications.
@@ -13,6 +29,7 @@ Flask-SQLAlchemy is an extension for Flask that adds support for SQLAlchemy. It 
 ### Flask-SQLAlchemy Features
 
 :::details Click to expand features of Flask-SQLAlchemy
+
 - **Declarative Syntax**: Define our database models using Python classes.
 - **Database Abstraction**: Supports multiple database backends (e.g., SQLite, PostgreSQL, MySQL). We can write nearly identical code regardless of the database we are using.
 - **Querying**: Provides a powerful and flexible querying system that allows us to retrieve data from the database using Pythonic syntax.

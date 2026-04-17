@@ -72,42 +72,56 @@
 # List.query.get(id_of_l)  -> [1,2,3]
 
 
-from flask import render_template, Flask, url_for, redirect, abort, request
+# from flask import render_template, Flask, url_for, redirect, abort, request
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
-@app.route("/")
-def home():
-    data = request.args
-    print(data.get("name", "Ravi"))
-    print(data.get("user", "himanshu"))
-    # print(url_for('hello', id=1, extra="discount"))
-    return request.args
+# @app.route("/")
+# def home():
+#     data = request.args
+#     print(data.get("name", "Ravi"))
+#     print(data.get("user", "himanshu"))
+#     # print(url_for('hello', id=1, extra="discount"))
+#     return request.args
 
-@app.route("/student/<int:id>/")
-def hello(id):
-    if id == 0:
-        abort(401)
-    return "hello", 200 
+# @app.route("/student/<int:id>/")
+# def hello(id):
+#     if id == 0:
+#         abort(401)
+#     return "hello", 200 
 
-@app.errorhandler(401)
-def handler_401(e):
-    print(e)
-    return redirect("/")
+# @app.errorhandler(401)
+# def handler_401(e):
+#     print(e)
+#     return redirect("/")
 
-@app.route("/form", methods=["POST", "GET"])
-def form():
-    if request.method == "POST":
-        form_data = request.form
-        return form_data
-    elif request.method == "GET":
-        return render_template("index.html")
+# @app.route("/form", methods=["POST", "GET"])
+# def form():
+#     if request.method == "POST":
+#         form_data = request.form
+#         return form_data
+#     elif request.method == "GET":
+#         return render_template("index.html")
 
-print(app.url_map)
-app.run(debug=True)
+# print(app.url_map)
+# app.run(debug=True)
 
 # request.args -> query parameter
 # request.form -> form data
 # request.json -> json body of request
 
 # dictionary
+
+import logging
+logging.basicConfig(level=20, filename='app.log', format='%(asctime)s - %(levelname)s - %(message)s')
+# 20 is the value for INFO level, so only INFO and above messages will be logged    
+def divide(a, b):
+    logging.debug(f'Dividing {a} by {b}')
+    if b == 0:
+        logging.error('Attempt to divide by zero')
+        return None
+    return a / b
+result = divide(10, 2)
+logging.info(f'Result of division: {result}')
+result = divide(10, 0)
+logging.info(f'Result of division: {result}')
