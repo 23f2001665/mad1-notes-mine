@@ -1,20 +1,20 @@
 # Python Basics
 
-Here in this section, we will cover those basics topics of python that are essential for this course and you or may not have come across in your previous python courses. Without making it too long, including every language feature we will cover only a few topics in this section:
+Here in this section, we will give reference to the python topics that are essential for this course and you or may not have come across in your previous python courses. Without making it too long, including every language feature we will cover only a few topics in this section:
 
-- Decorators and the '@' syntax, function decorators, class decorators, functools.wraps
-- Classes, objects, attributes, methods and dynamic binding
-- Inheritance, polymorphism, Mixins, multiple inheritance and method resolution order (MRO)
-- Modules, packages, libraries, __main__, __init__, __package__, __file__ variables and '-m' flag
-- import statement, __name__, __all__ variable, relative imports and import errors
-- Iterators and the 'iter' and 'next' functions, __iter__ and __next__ methods, for loops and comprehensions
-- List, set, dictionary comprehensions and generator expressions
-- Generators and the 'yield' keyword, generator expressions, itertools module
-- Exception handling: try, except, finally, raise
-- Lambda functions and anonymous functions, map, filter, reduce functions
-- Context managers and the 'with' statement, __enter__, _exit__ methods
-- datetime module, date and time manipulation, formatting and parsing
-- os and sys modules, file handling, command-line arguments, environment variables
-- Virtual environments: pip, venv, conda, requirements.txt
+- Decorators and the '@' syntax, function decorators, class decorators, `functools.wraps` ([decorators](https://docs.python.org/3/glossary.html#term-decorator), [functions](https://docs.python.org/3/reference/compound_stmts.html#function-definitions), [`functools.wraps`](https://docs.python.org/3/library/functools.html#functools.wraps))
+- Classes, objects, attributes, methods and dynamic binding ([classes](https://docs.python.org/3/tutorial/classes.html), [data model](https://docs.python.org/3/reference/datamodel.html))
+- Inheritance, polymorphism, Mixins, multiple inheritance and method resolution order (MRO) ([inheritance](https://docs.python.org/3/tutorial/classes.html#inheritance), [MRO](https://docs.python.org/3/howto/mro.html))
+- Modules, packages, libraries, `__main__`, `__init__`, `__package__`, `__file__` variables and the `-m` flag ([modules](https://docs.python.org/3/tutorial/modules.html), [packages](https://docs.python.org/3/tutorial/modules.html#packages), [`__main__`](https://docs.python.org/3/library/__main__.html), [`-m`](https://docs.python.org/3/using/cmdline.html#cmdoption-m))
+- `import` statement, `__name__`, `__all__`, relative imports and import errors ([import system](https://docs.python.org/3/reference/import.html), [`import` statement](https://docs.python.org/3/reference/simple_stmts.html#import), [module attributes](https://docs.python.org/3/reference/import.html#import-related-module-attributes))
+- Iterators and the `iter` and `next` functions, `__iter__` and `__next__` methods, `for` loops and comprehensions ([iterator protocol](https://docs.python.org/3/library/stdtypes.html#iterator-types), [`iter`](https://docs.python.org/3/library/functions.html#iter), [`next`](https://docs.python.org/3/library/functions.html#next), [`for` statement](https://docs.python.org/3/reference/compound_stmts.html#the-for-statement))
+- List, set, dictionary comprehensions and generator expressions ([comprehensions](https://docs.python.org/3/reference/expressions.html#displays-for-lists-sets-and-dictionaries), [generator expressions](https://docs.python.org/3/reference/expressions.html#generator-expressions))
+- Generators and the `yield` keyword, generator expressions, `itertools` module ([yield expressions](https://docs.python.org/3/reference/expressions.html#yield-expressions), [generators](https://docs.python.org/3/howto/functional.html#generators), [`itertools`](https://docs.python.org/3/library/itertools.html))
+- Exception handling: `try`, `except`, `finally`, `raise` ([exceptions](https://docs.python.org/3/tutorial/errors.html), [raise statement](https://docs.python.org/3/reference/simple_stmts.html#the-raise-statement), [try statement](https://docs.python.org/3/reference/compound_stmts.html#the-try-statement))
+- Lambda functions and anonymous functions, `map`, `filter`, `reduce` functions ([lambda expressions](https://docs.python.org/3/reference/expressions.html#lambda), [`map`](https://docs.python.org/3/library/functions.html#map), [`filter`](https://docs.python.org/3/library/functions.html#filter), [`functools.reduce`](https://docs.python.org/3/library/functools.html#functools.reduce))
+- Context managers and the `with` statement, `__enter__`, `__exit__` methods ([with statement](https://docs.python.org/3/reference/compound_stmts.html#the-with-statement), [context manager protocol](https://docs.python.org/3/reference/datamodel.html#context-managers), [`contextlib`](https://docs.python.org/3/library/contextlib.html))
+- `datetime` module, date and time manipulation, formatting and parsing ([`datetime`](https://docs.python.org/3/library/datetime.html), [`strftime` and `strptime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes))
+- `os` and `sys` modules, file handling, command-line arguments, environment variables ([`os`](https://docs.python.org/3/library/os.html), [`sys`](https://docs.python.org/3/library/sys.html), [input and output](https://docs.python.org/3/tutorial/inputoutput.html), [command-line arguments](https://docs.python.org/3/tutorial/stdlib.html#command-line-arguments), [environment variables](https://docs.python.org/3/library/os.html#os.environ))
+- Virtual environments: `pip`, `venv`, `conda`, `requirements.txt` ([`pip` user guide](https://pip.pypa.io/en/stable/user_guide/), [`venv`](https://docs.python.org/3/library/venv.html), [Conda environments](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), [requirements files](https://pip.pypa.io/en/stable/reference/requirements-file-format/))
 
-A basic understanding of these concepts along with the basics of bash-shell variables and commands will be sufficient for the rest of the course.
+A basic understanding of these concepts along with the basics of [Terminal User Interface](https://ubuntu.com/tutorials/command-line-for-beginners#3-opening-a-terminal) will be sufficient for the rest of the course.
