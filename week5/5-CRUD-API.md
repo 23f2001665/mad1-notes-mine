@@ -117,8 +117,7 @@ Optimization: Efficient transaction logging, Data durability mechanisms.
 
 An API (Application Programming Interface) is a <span style="font-weight:bold; color:rgb(181, 118, 244)">standardized way</span> for a client (frontend/external system) to communicate with a server.
 
-:::attention An API acts as a layer that translates HTTP requests into CRUD operations on the database.
-:::
+- An API acts as a layer that translates HTTP requests into CRUD operations on the database.
 
 - It is a set of definitions and protocols that allow two applications to communicate with
 each other.
@@ -457,4 +456,3 @@ curl -X POST http://127.0.0.1:5000/borrow \
 -H "Content-Type: application/json" \
 -d '{"student_id":"S101","book_id":"B1","borrow_date":"2024-02-01"}'
 ```
-:::
