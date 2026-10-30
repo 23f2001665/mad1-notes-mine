@@ -7,34 +7,43 @@
     - Server-side sessions
     - JWT tokens
 
-##### minimal HTTP server
+##### Minimal HTTP server
 
 ```bash
  while true; do # Runs the loop forever so, server keeps listening after each request
-    echo -e "HTTP/1/1 200 OK\n\n $(date)" | # inserts current date dynamically
-    nc -l localhost 1500;
- done
+ # Insert current data dynamically
+  echo -e "HTTP/1.1 200 OK\r\n\r\n$(date)" | nc -l -p 1500 
+  
+done
+
 ```
 
 `nc` = `netcat` (simple networking tool)
 `-l` = listen mode  on port `1500`(acts like a server)
 
 - When a client connects on port `1500` → sends current date as HTTP response from `echo` -> restarts and waits again
+  
+  ---
 
 ##### Python Built-in HTTP Server
 
 ```bash
 python -m http.server
 ```
+```plaintext
+http:// 0.0.0.0 : 8000
+        └──┬──┘   └──┬─┘
+           │         └── Default Port
+           └──────────── Default IP Address
 
-$http:// \underbrace{0.0.0.0}_\text{default IP address}: \underbrace{8000}_\text{default port}$ Serves files from the current working directory
+```
+Serves files from the current working directory
 
 HTTP 1.1 variant → large persistent connections and pipelining<br>
 
-::: tip ✅ TODO: Try `curl wttr.in/{type city name}` on your wsl terminal like `curl wttr.in/chennai`
-:::
+>✅ TODO: Try `curl wttr.in/{type city name}` on your wsl terminal like `curl wttr.in/chennai`
 
-:::code-group
+
 
 ```bash [Client Request]
 GET / HTTP/1.1 # http method & version
@@ -50,20 +59,18 @@ Content-Type: text/html
 Content-Length: <file-size> #10KB
 ```
 
-:::
-
-::: warning loopback addresses
+---
  `127.0.0.1 (IPv4)` and `::1 (IPv6)` are **loopback** addresses. Packets sent to these addresses:
 - Never leave the host machine & are looped through the network interface card only.
 - This can be used for **diagnostic** purposes to verify that the internal path through the TCP/IP protocols is working.
-:::
+
 
 <CurlRestAPI />
 
 | **Command**          | **Description**                                          |
 |----------------------|----------------------------------------------------------|
 | `curl <URL>`         | Basic GET request.                                       |
-| `curl -v <URL> --verbose`      | detailed ℹ️info about the request & response, including headers    |
+| `curl -v <URL> --verbose`      | detailed ℹ️ info about the request & response, including headers    |
 | `curl -L <URL>`      | Follow redirects.                                        |
 | `curl -O <URL>`      | Download a file with its original name.                  |
 | `curl -H  --header`  | add custom `"Header-Name: Header-Value"` to your HTTP request even multiple    |
@@ -80,3 +87,17 @@ Content-Length: <file-size> #10KB
  `>` indicate request headers sent by the client (cURL)<br>
  `<` received from the server.<br>
  `*` indicate additional information like SSL/TLS handshake details and connection info.
+
+``` bash
+*   Trying 127.0.0.0:5000...
+* Connected to 127.0.0.0 (127.0.0.0) port 5000
+> GET / HTTP/1.1
+> Host: 127.0.0.0:5000
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK 
+* no chunk, no close, no size. Assume close to signal end
+< 
+ Fri Oct 30 03:32:10 UTC 2026
+```
