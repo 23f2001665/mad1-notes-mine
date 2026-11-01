@@ -1,6 +1,7 @@
 # Flask SQLAlchemy
 
-In week 4 we have learned about how to create a Flask application, how to define routes and handle form data and other requests. In week 5, we will learn about how to use SQLAlchemy with Flask to interact with a database.
+In week 4 we have learned about how to create a Flask application, how to define routes and handle form data and other requests.
+ In week 5, we will learn about how to use SQLAlchemy with Flask to interact with a database.
 
 ## What is SQLAlchemy?
 
@@ -28,8 +29,6 @@ Flask-SQLAlchemy is an extension for Flask that adds support for SQLAlchemy. It 
 
 ### Flask-SQLAlchemy Features
 
-:::details Click to expand features of Flask-SQLAlchemy
-
 - **Declarative Syntax**: Define our database models using Python classes.
 - **Database Abstraction**: Supports multiple database backends (e.g., SQLite, PostgreSQL, MySQL). We can write nearly identical code regardless of the database we are using.
 - **Querying**: Provides a powerful and flexible querying system that allows us to retrieve data from the database using Pythonic syntax.
@@ -44,7 +43,6 @@ Flask-SQLAlchemy is an extension for Flask that adds support for SQLAlchemy. It 
 - **Integration**: Seamlessly integrates with Flask, allowing us to use it in our Flask applications without any additional configuration.
 - **Performance**: SQLAlchemy is designed to be efficient and can handle complex queries and large datasets with ease.
 
-:::
 
 ### How to install Flask-SQLAlchemy?
 
@@ -103,15 +101,15 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
-# Example of creating a new user
-new_user = User(username='john_doe',
-                email='john@example.com')
-db.session.add(new_user)  # Add the new user to the session
-db.session.commit()  # Commit the session to save the user to the database
+    # Example of creating a new user
+    new_user = User(username='john_doe',
+                    email='john@example.com')
+    db.session.add(new_user)  # Add the new user to the session
+    db.session.commit()  # Commit the session to save the user to the database
 
-# Example of querying the database
-user = User.query.filter_by(username='john_doe').first()  # Query for a user with username 'john_doe'
-print(user)  # Output: <User john_doe>
+    # Example of querying the database
+    user = User.query.filter_by(username='john_doe').first()  # Query for a user with username 'john_doe'
+    print(user)  # Output: <User john_doe>
 ```
 
 In this example, we have defined a `User` model with three columns: `id`, `username`, and `email`. We then create the database tables using `db.create_all()`, add a new user to the database, and query for that user. This is just a basic example, and Flask-SQLAlchemy provides many more features and capabilities for working with databases in our Flask applications.
@@ -148,14 +146,11 @@ The format of the DATABASE_URI is typically as follows:
 dialect+driver://username:password@host:port/database
 ```
 
-:::info course-specific-details
 but for our course we will be using SQLite as our database, which is a file-based database and does not require a username, password, host, or port. Therefore, the DATABASE_URI for SQLite is simply:
 
 ```bash
 sqlite:///path/to/database.db
 ```
-
-:::
 
 We have to set the DATABASE_URI in our Flask application configuration before initializing SQLAlchemy. This allows SQLAlchemy to know the information it needs to connect to the database when we create an instance of the SQLAlchemy class.
 
@@ -165,9 +160,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'  # Configure the 
 
 Now SQLAlchemy knows that we want to use a SQLite database located at `example.db` in the current directory. Under default configuration, it will create an instance of the database if it does not already exist and place it under a file named `example.db` inside directory named `instance` in the current directory.
 
-:::info order-of-operations
 This step must be done before initializing SQLAlchemy, as SQLAlchemy needs to know the database URI when it is initialized. If we try to initialize SQLAlchemy without setting the DATABASE_URI, we will get an error because SQLAlchemy will not know how to connect to the database.
-:::
+
 
 ### Step 3: Initializing SQLAlchemy
 
@@ -214,7 +208,7 @@ with app.app_context():
 
 This code should be run once when setting up the application to create the necessary tables in the database. If we make changes to our models later on, we will need to use a migration tool like `Flask-Migrate` to update the database schema accordingly.
 
-:::details Application Context
+
 
 A few methods in flask and sqlalchemy require an application context to be active in order to work properly. An application context is a way for Flask to keep track of the current application and its configuration.
 
@@ -254,10 +248,9 @@ if __name__ == '__main__':
 
 In this example, we have defined a route `/create_tables` that, when accessed, will trigger the application context and create the database tables based on our models. We can simply run the application and access `http://localhost:5000/create_tables` in our browser to create the tables without needing to manually push the application context. This is a convenient way to use the context-specific features of Flask and SQLAlchemy without needing to worry about managing the application context manually.
 
-:::info production-details
+
 
 In real world applications, we would typically use a migration tool like `Flask-Migrate` to manage our database schema changes over time, rather than using `db.create_all()` directly. This allows us to keep track of changes to our database schema and apply those changes in a controlled manner, especially when working with production databases.
-:::
 
 ### Step 6: Interacting with the Database
 
@@ -284,13 +277,9 @@ user = User.query.filter_by(username='john_doe').first()  # Query for a user wit
 print(user)  # Output: <User john_doe>
 ```
 
-:::warning output or None
-
 If the query does not find any matching records, it will return `None`. Therefore, it is important to check if the result of the query is `None` before trying to access any attributes of the returned object to avoid getting an `AttributeError`.
 
 Same thing applies to updating and deleting records as well. We should always check if the record we want to update or delete exists in the database before trying to perform the update or delete operation.
-
-:::
 
 #### Updating Records
 
@@ -301,13 +290,9 @@ user.email = 'john_updated@example.com'  # Update the user's email
 db.session.commit()  # Commit the changes to the database
 ```
 
-:::warning unique-constraint
-
 In this example, if we try to update the user's email to an email that already exists for another user in the database, we will get an error because of the unique constraint on the email column. Therefore, it is important to ensure that any updates we make to the database do not violate any constraints defined in our models.
 
 We will learn more about contraints in the upcoming sections when we discuss defining models in more detail.
-
-:::
 
 #### Deleting Records
 
