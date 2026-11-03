@@ -29,19 +29,23 @@ Flask-SQLAlchemy is an extension for Flask that adds support for SQLAlchemy. It 
 
 ### Flask-SQLAlchemy Features
 
-- **Declarative Syntax**: Define our database models using Python classes.
-- **Database Abstraction**: Supports multiple database backends (e.g., SQLite, PostgreSQL, MySQL). We can write nearly identical code regardless of the database we are using.
-- **Querying**: Provides a powerful and flexible querying system that allows us to retrieve data from the database using Pythonic syntax.
-- **Relationships**: Easily define relationships between different models (e.g., one-to-many, many-to-many) and navigate between them.
-- **Transactions**: Supports transactions, allowing us to ensure data integrity and consistency when performing multiple database operations.
-- **Connection Pooling**: Manages database connections efficiently, improving performance and scalability of our application.
-- **Security**: Helps prevent SQL injection attacks by using parameterized queries and escaping user input.
-- **Session Management**: Manages database sessions and transactions, ensuring that our database interactions are efficient and safe.
-- **Schema Generation**: Automatically generates database schemas based on our model definitions, making it easier to set up and maintain our database.
-- **Migrations**: Integrates with Flask-Migrate to handle database migrations, making it easier to manage changes to our database schema over time.
-- **Validation**: Easily integrate with Flask-WTF, Marshmallow, or other validation libraries to validate data before it is stored in the database.
-- **Integration**: Seamlessly integrates with Flask, allowing us to use it in our Flask applications without any additional configuration.
-- **Performance**: SQLAlchemy is designed to be efficient and can handle complex queries and large datasets with ease.
+Flask-SQLAlchemy is a Flask extension that integrates SQLAlchemy with Flask and simplifies database operations in Flask applications.
+
+| Feature | Explanation | Example |
+|---|---|---|
+| **Declarative Syntax** | Allows us to define database tables using Python classes. | Creating a `User` model with `db.Model`. |
+| **Database Abstraction** | Allows us to work with different databases using similar Python code. | SQLite, PostgreSQL, MySQL. |
+| **Querying** | Provides Python methods to retrieve, filter and search database records. | `User.query.filter_by(username="Pallavi").first()` |
+| **Relationships** | Allows us to establish relationships between database tables. | One course can have multiple examinations. |
+| **Transactions** | Ensures database operations are committed together or rolled back when necessary. | `db.session.commit()` and `db.session.rollback()`. |
+| **Connection Pooling** | Reuses database connections instead of creating a new connection for every request. | Efficiently managing database connections. |
+| **Security** | Uses parameterized queries through SQLAlchemy's query system, helping protect against SQL injection. | `User.query.filter_by(username=username).first()` |
+| **Session Management** | Provides `db.session` to manage database operations such as adding, updating and deleting records. | `db.session.add(user)` |
+| **Schema Generation** | Allows us to create database tables based on our model definitions. | `db.create_all()` |
+| **Migrations** | Supports schema changes over time through Flask-Migrate. | Adding a new column to an existing table. |
+| **Validation Integration** | Can work with external validation libraries to validate data before storing it. | Flask-WTF, Marshmallow. |
+| **Flask Integration** | Integrates SQLAlchemy with Flask application configuration and application context. | `db.init_app(app)` |
+| **Performance** | Supports efficient query execution, indexing and other database optimisation techniques. | Filtering records using indexed columns. |
 
 
 ### How to install Flask-SQLAlchemy?
@@ -421,7 +425,6 @@ if __name__ == '__main__':
 
 ## Extra: States of SQLAlchemy Objects
 
-:::details Click to expand states of SQLAlchemy objects
 In SQLAlchemy, objects can be in one of the following states:
 
 - **Transient**: An object that has been created but is not yet associated with a session. It is not yet persisted in the database.
@@ -429,7 +432,6 @@ In SQLAlchemy, objects can be in one of the following states:
 - **Persistent**: An object that is associated with a session and has been committed to the database. It is persisted in the database and can be queried and updated.
 - **Detached**: An object that was previously associated with a session but has been removed from the session. It is not currently associated with any session and is not persisted in the database.
 - **Deleted**: An object that has been marked for deletion from the database. It is scheduled to be removed from the database when the session is committed.
-:::
 
 ## Summary
 

@@ -61,7 +61,7 @@ if user:
 
 In this example, we query the user with a specific id, delete the user from the session, and then commit the changes to the database.
 
-:::info Note
+
 `db.session.delete` takes only a single record as an argument. To delete multiple records, we can use the `delete()` method on a query, similar to how we update multiple records. Here’s an example:
 
 ```python
@@ -71,7 +71,7 @@ db.session.commit()  # Commit the changes to the database
 ```
 
 In this example, we delete all users whose name starts with 'Old'. The `synchronize_session` parameter is used to specify how the session should be synchronized after the delete operation.
-:::
+
 
 ## Non ORM Way to Update and Delete Records
 

@@ -13,7 +13,7 @@ In this section, we will learn more about querying the database using Flask-SQLA
 - Aggregating results
 - Using raw SQL queries
 
-:::info
+
 For the examples in this section, we will use the following `User` model:
 
 ```python
@@ -81,7 +81,6 @@ print(type(query1))  # <class 'flask_sqlalchemy.query.Query'>
 print(type(query2))  # <class 'flask_sqlalchemy.query.Query'>
 ```
 
-:::
 
 In this section, we will be using `db.session.query(User)` to demonstrate the querying capabilities of Flask-SQLAlchemy. However, you can also use `User.query` if you prefer a more concise syntax.
 
@@ -130,13 +129,11 @@ first_user = db.session.query(User).first()
 print(first_user)  # <User Alice>
 ```
 
-:::info
 
 - `.first` does not guarantee any specific order of the results unless you explicitly specify an order using `.order_by`. If you want to ensure a specific order, you should use `.order_by` before calling `.first`.
 - We can also use `.first_or_404` method, which works similarly to `.first`, but raises a `404 Not Found` error if no records match the criteria.
 - `.first()` → applies LIMIT 1 at SQL level.
 
-:::
 
 ### `.one`
 
@@ -174,11 +171,10 @@ username = db.session.query(User.username).scalar()
 print(username)  # Alice
 ```
 
-:::info
 
 We will explore a bit more about session this type of query later in this section.
 
-:::
+
 
 ### `.count`
 
@@ -269,11 +265,8 @@ ny_users = db.session.query(User).filter_by(city='New York').all()
 print(ny_users)  # [<User Alice>, <User David>]
 ```
 
-:::info
 
 It is important to note that `.filter_by` is a more concise way to filter results based on simple equality conditions. However, it does not support more complex filtering criteria such as comparisons, logical operators, or functions. For more complex filtering, you should use the `.filter` method.
-
-:::
 
 ### `.filter`
 
@@ -285,7 +278,6 @@ rich_users = db.session.query(User).filter(User.budget > 1000).all()
 print(rich_users)  # [<User Bob>, <User David>]
 ```
 
-:::info
 
 The `.filter` method allows you to use a wide range of operators and functions to create complex filtering criteria. You can combine multiple conditions using logical operators such as `and_`, `or_`, and `not_` from the `sqlalchemy` library.
 
@@ -578,11 +570,10 @@ users = result.scalars().all()
 print(users)  # [<User Alice>, <User David>]
 ```
 
-:::info Relationships
 
 In this section, we have not covered querying across relationships and joining tables. This is a more advanced topic that involves understanding how to define relationships between models and how to query across those relationships using joins. We will cover this topic in more detail in a later section when we discuss relationships in Flask-SQLAlchemy.
 
-:::
+
 
 ## Summary
 
@@ -610,6 +601,5 @@ In this section, we have covered various methods for querying the database using
    - .offset()
    - .distinct()
 
-:::info Note:
-SQLAlchemy queries are lazy. The query is not executed until an execution method is called.
-:::
+> SQLAlchemy queries are lazy. The query is not executed until an execution method is called.
+

@@ -1,6 +1,6 @@
 # Flask-sqlalchemy Relationships
 
-::: warning Foreign key column goes on the "many" side in one-to-many (or many-to-one)
+Foreign key column goes on the "many" side in one-to-many (or many-to-one)
 #### Many-to-One (Many articles belong to one user)
 ```python
 class User(db.Model):
@@ -51,7 +51,6 @@ add `unique=True` constraint on the foreign key column.
 user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Article
 ```
 ![](../static/one-many-PYQ.png)
-:::
 
 <LibrarySQlalchemy />
 
