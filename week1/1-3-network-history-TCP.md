@@ -59,7 +59,7 @@ tcp --> domain --> http --"DNS database of ISP local cache"--> web
 You will learn about *HTTP methods* in greater detail in [Week 6](../week6/6-Rest-APIs.md)
 [HTTPS is HTTP + encryption (TLS)](../week9/9-Security.md)
 
-### ⭐Checkout [Curl Commands](../week5/5-business-logic-layer-CONTROLLER#curl-commands) from Week-5
+### ⭐Checkout [Curl Commands](../week5/5-curl-server.md#curl-commands) from Week-5
 
 ## Transmission Control Protocol
 **Transport Layer that ensures data gets delivered correctly (Accuracy > Speed)**
@@ -151,6 +151,7 @@ payload (data)
   - Created due to IPv4 address shortage
 
 ::: details ❓ An IPv4 address is given as: `172.16.10.25`<br>Each IPv4 octet is converted→ to hexadecimal → combined pairwise (using 4 hexadecimal digits per group).<br>How will the above IPv4 address be represented in IPv6-style hexadecimal notation?<br>A) `AC10:0A19:0000:0000`<br>B) `0000:0000:AC10:0A19`<br>C) `AC10:190A:0000:0000`<br>D) `0000:AC10:0A19:0000`<br>
+
 $$
 \begin{align}
 &\textbf{Given IPv4 address: } 172.16.10.25 \\
@@ -168,8 +169,8 @@ $$
 
 
 Correct Answer: B) `0000:0000:AC10:0A19`
+
 ![](../static/binary-conversion-table.png)
-:::
 
 
 👉 IP = which machine?

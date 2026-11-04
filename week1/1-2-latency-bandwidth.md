@@ -28,7 +28,16 @@ If communication is **continuous request–response** based:
 >Even though it feels “instant”, the signal still has to physically travel through cables.<br>
 >So, we use basic `Speed=Distance/Time` physics formula from our School Science textbooks!!😃
 >just rearrange it:
-$$\begin{gather} \text{ Time } = \frac{\text{Distance}}{\text{Speed}} \\ \frac{2000 \times 10^3}{2 \times 10^8} \\ = 1 \times 10^{-2} = 10\text{ milliseconds}\end{gather}$$
+
+$$
+\begin{aligned}
+\text{Time} &= \frac{\text{Distance}}{\text{Speed}} \\
+&= \frac{2000 \times 10^3}{2 \times 10^8} \\
+&= 1 \times 10^{-2} \text{ seconds} \\
+&= 10 \text{ milliseconds}
+\end{aligned}
+$$
+
 this is **one-way latency**
 
 Calculate the round-trip delay (in ms) i.e. time to go + come-back
@@ -45,8 +54,10 @@ What is the maximum number of requests per second the client can make? If the st
 - Only after Round-Trip is finished, the next request starts
 
 So in 1 second, the number of requests possible is:
+
 $$\begin{gather} \text{Requests per second} \approx \frac{1}{\text{Round-trip latency}} \\ = \frac{1}{\text{20 ms}} = \frac{1}{0.02} =
 \text{50 requests/sec} \end{gather}$$
+
 👉 Even if student has **high bandwidth or Fast CPU**, Latency still limits how many requests you can do per second, 
 This is why:
 1. Far-away servers feel slower
@@ -60,6 +71,7 @@ Bandwidth is how much data can be sent per second.
 - Multiple requests per second = more data per second
 
 So total data sent per second is:
+
 $$
 \text{Bandwidth} = (\text{Number of requests per second }) \times (\text{size of each request})
 $$
@@ -74,25 +86,30 @@ During peak time:
 - Each user makes 2 searches per second
 
 > How many requests per second does the server receive? (Each student makes `2 requests/sec`)
-  $$\begin{gather}
+
+  $$
+  \begin{gather}
   \text{number of students $\times$ requests per student}\\
   1000 \times 2 = 2000 \text{ requests/sec}
   \end{gather}
   $$
 
 > How much data (in MB per second) does the server send?
+
   $$\begin{gather}
   \text{total requests/sec $\times$ each request data size
   }\\
-  2000 \times 18.2 \text{ KB} = 36{,}400 \text{ KB/s} \\=  36.4 \text{ MBps}
+  2000 \times 18.2 \text{ KB} = 36{,}400 \text{ KB/s} \=  36.4 \text{ MBps}
   \end{gather}
   $$
 
 > What is the minimum bandwidth (in Mbps) required? (1 Byte = 8 bits)
   Networks measure bandwidth in bits, not bytes
+
   $$
   36.4 \times 8 = 291.2 \text{ Mbps}
   $$
+
   👉 Server needs at least **300 Mbps bandwidth** is needed to avoid congestion.
 
 Gamer streams a **live event** using own streaming server.
@@ -103,7 +120,9 @@ Gamer streams a **live event** using own streaming server.
 > How much total memory (in GB) is required?
 50,000 viewers are **active at the same time** (memory needs to be store **simultaneously**)
 Then server must hold:
-$$\begin{gather}
+
+$$
+\begin{gather}
 \text{Total Memory = No. of viewers $\times$ video playback buffer memory per viewer} \\
 50{,}000 \times 4 \text{ MB} = 200{,}000 \text{ MB}
 \\ = 200 \text{ GB}

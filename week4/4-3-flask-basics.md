@@ -23,13 +23,15 @@ To install Flask, we can use pip, the Python package manager. Open our terminal 
 
 :::code-group
 
-```bash[Windows]
+```
+bash[Windows]
 python -m venv flask-env
 flask-env\Scripts\activate
 pip install Flask
 ```
 
-```bash[macOS/Linux]
+```
+bash[macOS/Linux]
 python3 -m venv flask-env
 source flask-env/bin/activate
 pip install Flask
