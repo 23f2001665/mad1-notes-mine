@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+<!DOCTYPE html>
+<!-- name, dob:date, gender:radio -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+</head>
+<body>
+    <!-- for html forms only get and post methods are allowed*. -->
+    <!-- action is where to send this data: URL -->
+    
+    {% block form %}
+    {{x}}
+    <form action="/register" method="post">
+
+        <label for="full-name">Full Name</label>
+        <input type="text" name="fullname" value="hr" id="full-name">
+        
+        <label for="dob">Date of Birth</label>
+        <input type="date" name="dob" id="dob">
+
+        <span>Gender</span>
+        <label for="male">Male</label>
+        <input type="radio" name="gender" id="male" value="m">
+        <label for="female">Female</label>
+        <input type="radio" name="gender" id="female" value="f">
+
+        <button type="submit">submit</button>
+    </form>
+    {% endblock %}
+
+    {% block rabbit %}
+    {{ super() }} <br>
+    Rabbit finished grass
+    {% endblock %}
+
+    something
+
+</body>
+</html>
+
+<!-- name will become the key and vlaue will become the value in the JSON(dict like) body -->

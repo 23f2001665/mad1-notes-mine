@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome {% if gender=='m' %}Mr. {% else %} Ms. {% endif %}{{name}}</h1>
+    <p>You are {{age}} years old</p>
+
+    {% block form %}
+
+    {% endblock %}
+
+    {% block rabbit %}
+
+    Rabbit eats grass
+
+    {% endblock %}
+
+    <footer>bye bye</footer>
+</body>
+</html>
