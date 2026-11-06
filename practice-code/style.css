@@ -1,0 +1,49 @@
+/* External CSS */
+/* #p1 {
+    color: red;
+}
+
+#p2 {
+    font-size: 3.5rem;
+    font-weight: lighter;
+} */
+/* #p1,.general-paragraph {
+    color:red;
+} */
+/* 
+.general-paragraph {
+    font-style: italic;
+    color:aqua;
+}
+
+#p1.general-paragraph{
+    color:blue;
+}
+#p1{
+    color:red;
+}
+
+p {
+    font-weight: bold;
+}
+
+* {
+    text-transform: uppercase;
+} */
+
+body a{
+    text-transform: capitalize;
+}
+body>a{
+    color:chartreuse;
+}
+
+#p1~#p2{
+    color:yellow;
+}
+
+/* 
+each id add(1,0,0)
+each class add (0,1,0)
+each tag add (0,0,1)
+*/

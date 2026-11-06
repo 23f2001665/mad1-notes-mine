@@ -241,17 +241,8 @@ div {
 ### Some named colors in CSS
 Named colors can be used for simplicity, for more precise colors, use `RGB (red-green-blue values), HEX codes or HSL (hue-saturation-light values)`
 
-<iframe
-  src="https://davidbau.com/colors/"
-  title="CSS Color Names Visualizer"
-  width="100%"
-  height="520"
-  style="
-    border: 1px solid var(--vp-c-divider);
-    border-radius: 12px;
-  "
-  loading="lazy"
-></iframe>
+[CSS Color Names Visualizer](https://davidbau.com/colors)
+
 
 :::
 
