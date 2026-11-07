@@ -130,11 +130,9 @@ This bidirectional synchronization happens purely in memory, before any database
 
 Without back_populates, both relationship attributes behave independently, and SQLAlchemy will not keep them in sync automatically, which can lead to inconsistent application state.
 
-
 `back_populates` is part of SQLAlchemy’s ORM relationship synchronization system. It tells SQLAlchemy:
 
 “These two relationship attributes represent the same link — keep them in sync in Python.”
-
 
 ### backref vs back_populates
 
@@ -207,8 +205,6 @@ Related objects are never loaded automatically; accessing the attribute either g
 | --------- | ------------------------------------------------------------ |
 | `noload`  | never load: empty list `[]` for collections, `None` for a single object (deprecated in SQLAlchemy 2.1) |
 | `raise`   | raise an error on access                                     |
-
-
 
 ### Lazy Loading or Select Loading (**Default**)
 
@@ -438,7 +434,6 @@ class Article(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     author = db.relationship('User', back_populates='articles')
 
-
 user = User.query.first()
 # The articles are never loaded.
 articles = user.articles  # [] (empty list), and no query is executed.
@@ -544,21 +539,22 @@ In this example, we have specified `ondelete='CASCADE'` and `onupdate='CASCADE'`
 
 `ondelete=...` produces the SQL clause `ON DELETE <action>` and `onupdate=...` produces `ON UPDATE <action>`.
 
-::: warning NOTE
-By default, `sqlite3` does not enforce foreign key constraints, so you need to enable it explicitly by executing `PRAGMA foreign_keys = ON;` after establishing a connection to the database. In other databases like PostgreSQL and MySQL, foreign key constraints are enforced by default. You can enable foreign key constraints in SQLite by adding the following code to your application:
-
-```python
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-```
-
-Without enabling foreign key constraints, the cascade options specified in the foreign key definition will not be enforced, and related records will not be automatically deleted or updated when a parent record is deleted or updated. This leads to potential data integrity issues, as orphaned records may remain in the database without the expected cascading behavior.
-:::
+> [!WARNING]
+> **NOTE**
+>
+> By default, `sqlite3` does not enforce foreign key constraints, so you need to enable it explicitly by executing `PRAGMA foreign_keys = ON;` after establishing a connection to the database. In other databases like PostgreSQL and MySQL, foreign key constraints are enforced by default. You can enable foreign key constraints in SQLite by adding the following code to your application:
+>
+> ```python
+> from sqlalchemy import event
+> from sqlalchemy.engine import Engine
+> @event.listens_for(Engine, "connect")
+> def set_sqlite_pragma(dbapi_connection, connection_record):
+>     cursor = dbapi_connection.cursor()
+>     cursor.execute("PRAGMA foreign_keys=ON")
+>     cursor.close()
+> ```
+>
+> Without enabling foreign key constraints, the cascade options specified in the foreign key definition will not be enforced, and related records will not be automatically deleted or updated when a parent record is deleted or updated. This leads to potential data integrity issues, as orphaned records may remain in the database without the expected cascading behavior.
 
 #### `ondelete='CASCADE'` and the ORM: `passive_deletes`
 

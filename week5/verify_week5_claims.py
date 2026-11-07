@@ -771,6 +771,7 @@ def run_note_blocks(md_file, skip_if_contains=()):
     import os
     import re
     src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), md_file)).read()
+    src = re.sub(r"(?m)^> ?", "", src)  # code inside GitHub alerts (> [!NOTE]) is quoted
     blocks = re.findall(r"```python\n(.*?)```", src, re.S)
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
@@ -810,6 +811,7 @@ def note_blocks(md_file):
     import os
     import re
     src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), md_file)).read()
+    src = re.sub(r"(?m)^> ?", "", src)  # code inside GitHub alerts (> [!NOTE]) is quoted
     return re.findall(r"```python(?: \[[^\]]+\])?\n(.*?)```", src, re.S)
 
 

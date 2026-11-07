@@ -59,5 +59,3 @@ class Profile(db.Model):
 ```
 ![](../static/one-many-PYQ.png)
 
-<LibrarySQlalchemy />
-

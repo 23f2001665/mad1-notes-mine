@@ -13,7 +13,6 @@ In this section, we will learn more about querying the database using Flask-SQLA
 - Aggregating results
 - Using raw SQL queries
 
-
 For the examples in this section, we will use the following `User` model:
 
 ```python
@@ -70,18 +69,18 @@ users.budget AS users_budget
 FROM users
 ```
 
-::: info `Model.query` vs `db.session.query(Model)`
-The `query` object provided by Model itself is just a convenient shortcut to `db.session.query(Model)`. Both of them will give you the same query object that you can use to perform various operations on the database.
-
-```python
-# Both of these will give you the same query object
-query1 = db.session.query(User)
-query2 = User.query
-print(type(query1))  # <class 'flask_sqlalchemy.query.Query'>
-print(type(query2))  # <class 'flask_sqlalchemy.query.Query'>
-```
-:::
-
+> [!NOTE]
+> **`Model.query` vs `db.session.query(Model)`**
+>
+> The `query` object provided by Model itself is just a convenient shortcut to `db.session.query(Model)`. Both of them will give you the same query object that you can use to perform various operations on the database.
+>
+> ```python
+> # Both of these will give you the same query object
+> query1 = db.session.query(User)
+> query2 = User.query
+> print(type(query1))  # <class 'flask_sqlalchemy.query.Query'>
+> print(type(query2))  # <class 'flask_sqlalchemy.query.Query'>
+> ```
 
 In this section, we will be using `db.session.query(User)` to demonstrate the querying capabilities of Flask-SQLAlchemy. However, you can also use `User.query` if you prefer a more concise syntax.
 
@@ -134,11 +133,9 @@ first_user = db.session.query(User).first()
 print(first_user)  # <User Alice>
 ```
 
-
 - `.first` does not guarantee any specific order of the results unless you explicitly specify an order using `.order_by`. If you want to ensure a specific order, you should use `.order_by` before calling `.first`.
 - We can also use `.first_or_404` method, which works similarly to `.first`, but raises a `404 Not Found` error if no records match the criteria.
 - `.first()` → applies LIMIT 1 at SQL level.
-
 
 ### `.one`
 
@@ -182,8 +179,6 @@ db.session.query(User.username).scalar()  # 5 rows -> raises MultipleResultsFoun
 Typical use of `.scalar()` is with aggregate queries which always return one row, e.g. `db.session.query(func.count(User.id)).scalar()`.
 
 **Careful:** in the SQLAlchemy 2.0 style, `db.session.execute(select(User.username)).scalar()` is *not* strict: it simply returns the first column of the first row. Its strict version is `.scalar_one()`.
-
-
 
 ### `.count`
 
@@ -279,7 +274,6 @@ ny_users = db.session.query(User).filter_by(city='New York').all()
 print(ny_users)  # [<User Alice>, <User David>]
 ```
 
-
 It is important to note that `.filter_by` is a more concise way to filter results based on simple equality conditions. However, it does not support more complex filtering criteria such as comparisons, logical operators, or functions. For more complex filtering, you should use the `.filter` method.
 
 ### `.filter`
@@ -291,7 +285,6 @@ The `.filter` method is used to apply filtering criteria to the query. It takes 
 rich_users = db.session.query(User).filter(User.budget > 1000).all()
 print(rich_users)  # [<User Bob>, <User David>]
 ```
-
 
 The `.filter` method allows you to use a wide range of operators and functions to create complex filtering criteria. You can combine multiple conditions using logical operators such as `and_`, `or_`, and `not_` from the `sqlalchemy` library. Passing several conditions to `.filter(a, b)` (or chaining `.filter(a).filter(b)`) also combines them with AND.
 
@@ -358,7 +351,6 @@ users_in = db.session.query(User).filter(
 print(users_in)
 # → Users from NY and LA
 
-
 # ============================================================
 # 2. LIKE → pattern matching
 # ============================================================
@@ -368,7 +360,6 @@ users_like = db.session.query(User).filter(
 ).all()
 print(users_like)
 # → Names starting with 'A'
-
 
 # ============================================================
 # 3. EXISTS → correlated subquery
@@ -396,7 +387,6 @@ users_not_exists = db.session.query(User).filter(
 print(users_not_exists)
 # → [<User Alice>, <User Charlie>, <User David>]
 
-
 # ============================================================
 # 4. ANY → greater than ANY (at least one)
 # Compare with Chicago users
@@ -414,7 +404,6 @@ users_any = db.session.query(User).filter(
 print(users_any)
 # → Budget > at least one Chicago budget (800)
 
-
 # ============================================================
 # 5. ALL → greater than ALL (every value)
 # Compare with New York users
@@ -430,7 +419,6 @@ users_all = db.session.query(User).filter(
 print(users_all)
 # → [<User Bob>]  Budget greater than ALL NY budgets (1000, 1200)
 
-
 # ============================================================
 # BONUS: ALL to find max budget user
 # ============================================================
@@ -444,7 +432,6 @@ max_user = db.session.query(User).filter(
 
 print(max_user)
 # → [<User Bob>]  User with highest budget
-
 
 # ============================================================
 # SQLite-friendly equivalents of ANY / ALL using MIN / MAX
@@ -502,20 +489,19 @@ users_with_offset = db.session.query(User).order_by(desc(User.budget)).offset(2)
 print(users_with_offset)
 ```
 
-::: info
-While `.limit` and `.offset` can be used for simple pagination, Flask-SQLAlchemy also provides a more convenient method called `.paginate`, which we will cover in the next section. The `.paginate` method handles both limiting and offsetting the results based on the page number and items per page.
-
-example of using `.limit` and `.offset` for pagination:
-
-```python
-# Get the second page of users with 2 users per page
-page_number = 2
-items_per_page = 2
-users_page_2 = db.session.query(User).order_by(User.id).limit(items_per_page).offset((page_number - 1) * items_per_page).all()
-print(users_page_2)
-```
-
-:::
+> [!NOTE]
+> While `.limit` and `.offset` can be used for simple pagination, Flask-SQLAlchemy also provides a more convenient method called `.paginate`, which we will cover in the next section. The `.paginate` method handles both limiting and offsetting the results based on the page number and items per page.
+>
+> example of using `.limit` and `.offset` for pagination:
+>
+> ```python
+> # Get the second page of users with 2 users per page
+> page_number = 2
+> items_per_page = 2
+> users_page_2 = db.session.query(User).order_by(User.id).limit(items_per_page).offset((page_number - 1) * items_per_page).all()
+> print(users_page_2)
+> ```
+>
 
 ## Pagination
 
@@ -627,10 +613,7 @@ users = db.session.scalars(stmt).all()
 
 `db.session.execute(stmt)` returns a `Result` whose rows are tuples (here `(<User Alice>,)`); `.scalars()` takes the first element of each row, giving `User` objects.
 
-
 In this section, we have not covered querying across relationships and joining tables. This is a more advanced topic that involves understanding how to define relationships between models and how to query across those relationships using joins. We will cover this topic in more detail in a later section when we discuss relationships in Flask-SQLAlchemy.
-
-
 
 ## Summary
 

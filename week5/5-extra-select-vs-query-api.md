@@ -7,9 +7,10 @@ SQLAlchemy gives us two ways to write ORM queries:
 
 `select()` has existed in SQLAlchemy Core for a long time, but since SQLAlchemy 1.4 it can also be used for ORM queries, and in SQLAlchemy 2.0 it is the recommended way to query. The Query API still works fully and is not going to be removed soon, but the SQLAlchemy documentation calls it *legacy*.
 
-::: info Is `select()` raw SQL?
-No. `select()` is a Python object that *describes* a query. SQLAlchemy compiles it into SQL for the database we are using (SQLite, PostgreSQL, ...). Raw SQL is what we write by hand inside `text("SELECT ...")`.
-:::
+> [!NOTE]
+> **Is `select()` raw SQL?**
+>
+> No. `select()` is a Python object that *describes* a query. SQLAlchemy compiles it into SQL for the database we are using (SQLite, PostgreSQL, ...). Raw SQL is what we write by hand inside `text("SELECT ...")`.
 
 For the examples we use the same model and data as the querying note:
 
@@ -63,9 +64,10 @@ print(result.scalars().all())   # [<User Alice>, <User David>]      <- objects
 print(db.session.scalars(stmt).all())   # shortcut for execute(...).scalars()
 ```
 
-::: warning Rows vs objects
-`db.session.execute(select(User))` returns **rows**, and each row is a tuple with one element: `(<User Alice>,)`. Use `.scalars()` (or `db.session.scalars(...)`) when you want the `User` objects themselves. Forgetting `.scalars()` is the most common mistake with the Select API.
-:::
+> [!WARNING]
+> **Rows vs objects**
+>
+> `db.session.execute(select(User))` returns **rows**, and each row is a tuple with one element: `(<User Alice>,)`. Use `.scalars()` (or `db.session.scalars(...)`) when you want the `User` objects themselves. Forgetting `.scalars()` is the most common mistake with the Select API.
 
 ### Methods on the Result
 
@@ -85,104 +87,106 @@ Careful: the legacy `Query.scalar()` behaves like `scalar_one_or_none()`: it **r
 
 ### Get by Primary Key
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 user = User.query.get(1)              # legacy, emits LegacyAPIWarning
 user = db.session.query(User).get(1)  # legacy
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 user = db.session.get(User, 1)        # <User Alice>, or None if not found
 ```
 
-:::
-
 ### Filtering
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 ny_users = User.query.filter_by(city='New York').all()
 rich_users = User.query.filter(User.budget > 1000).all()
 first_rich = User.query.filter(User.budget > 1000).first()
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 ny_users = db.session.scalars(select(User).filter_by(city='New York')).all()
 rich_users = db.session.scalars(select(User).where(User.budget > 1000)).all()
 first_rich = db.session.scalars(select(User).where(User.budget > 1000)).first()
 ```
 
-:::
-
 `where()` is the Select API name for `filter()`; `select()` also accepts `.filter()` and `.filter_by()`, so old habits still work. All the operators (`==`, `in_`, `like`, `and_`, `or_`, ...) are exactly the same in both APIs.
 
 ### Ordering and Limiting
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 top3 = User.query.order_by(User.budget.desc()).limit(3).all()
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 top3 = db.session.scalars(select(User).order_by(User.budget.desc()).limit(3)).all()
 # [<User Bob>, <User David>, <User Alice>]
 ```
 
-:::
-
 ### Selecting Specific Columns
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 rows = db.session.query(User.username, User.city).all()
 names = [name for (name,) in db.session.query(User.username).all()]
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 rows = db.session.execute(select(User.username, User.city)).all()
 # [('Alice', 'New York'), ('Bob', 'Los Angeles'), ...]
 names = db.session.scalars(select(User.username)).all()
 # ['Alice', 'Bob', 'Charlie', 'David', 'Eve']
 ```
 
-:::
-
 Here `.scalars()` is handy: it gives a plain list of values instead of one-element tuples.
 
 ### Counting and Aggregates
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 count = User.query.count()
 avg_budget = db.session.query(func.avg(User.budget)).scalar()
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 count = db.session.scalar(select(func.count()).select_from(User))   # 5
 avg_budget = db.session.scalar(select(func.avg(User.budget)))      # 1080.0
 ```
-
-:::
 
 There is no `.count()` method on a `select()`; we select `func.count()` like we would in SQL. `select_from(User)` tells SQLAlchemy which table to count, because `func.count()` alone does not mention any table.
 
 ### Group By and Having
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 rows = (db.session.query(User.city, func.sum(User.budget))
         .group_by(User.city)
         .having(func.sum(User.budget) > 2000)
         .all())
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 rows = db.session.execute(
     select(User.city, func.sum(User.budget))
     .group_by(User.city)
@@ -191,43 +195,41 @@ rows = db.session.execute(
 # [('Los Angeles', 2400.0), ('New York', 2200.0)]
 ```
 
-:::
-
 ### Pagination and 404 Helpers (Flask-SQLAlchemy)
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 page = User.query.order_by(User.id).paginate(page=1, per_page=2)
 user = User.query.get_or_404(1)
 user = User.query.filter_by(username='Alice').first_or_404()
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 page = db.paginate(select(User).order_by(User.id), page=1, per_page=2)
 user = db.get_or_404(User, 1)
 user = db.first_or_404(select(User).filter_by(username='Alice'))
 ```
 
-:::
-
 ### Bulk Update and Delete
 
-::: code-group
+**Query API**
 
-```python [Query API]
+```python
 User.query.filter(User.city == 'Chicago').update({User.budget: 850.0})
 User.query.filter(User.budget < 900).delete()
 db.session.commit()
 ```
 
-```python [Select API]
+**Select API**
+
+```python
 db.session.execute(update(User).where(User.city == 'Chicago').values(budget=850.0))
 db.session.execute(delete(User).where(User.budget < 900))
 db.session.commit()
 ```
-
-:::
 
 Both are bulk statements: they run a single `UPDATE`/`DELETE` in the database and do not apply ORM relationship cascades (see the update-and-delete note).
 
@@ -257,9 +259,12 @@ Both are bulk statements: they run a single `UPDATE`/`DELETE` in the database an
 | Count | `.count()` | `select(func.count())` |
 | Same statement object for Core and ORM | No | Yes (`select()` works with or without the ORM, and with async sessions) |
 
-::: details Which one should I use?
+<details>
+<summary>Which one should I use?</summary>
+
 Both produce the same SQL and either is fine for the course and the project. Most course videos, PYQs and older tutorials use the **Query API** (`User.query...`), so we must be able to read it. For new code, the SQLAlchemy and Flask-SQLAlchemy documentation use the **Select API**, and it avoids the `LegacyAPIWarning` messages. Mixing both in one project works but is harder to read, so pick one style and stay consistent.
-:::
+
+</details>
 
 ## Summary
 

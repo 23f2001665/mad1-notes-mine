@@ -1,6 +1,5 @@
 # Week 5
 
-<SessionResources :week="5" />
 This week focuses on the **Business Logic Layer** of a web application and introduces how <span style="font-weight:bold; color:rgb(98, 151, 208)">controllers manage interactions between the view and the model</span>
 
 You can revise [Model–View–Controller (MVC) design pattern](../week4/4-database-layer-MODEL.md#MVC(Model-View-Controller))  

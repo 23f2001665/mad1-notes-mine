@@ -1,8 +1,9 @@
 # Base SQLAlchemy (without Flask)
 
-::: danger Out of syllabus
-In the course we always use **Flask-SQLAlchemy**. This page shows plain SQLAlchemy, the library that Flask-SQLAlchemy is built on, so that we understand what `db.Model`, `db.session` and `db.engine` really are. It is only for learning purposes and can be skipped if you lack time.
-:::
+> [!CAUTION]
+> **Out of syllabus**
+>
+> In the course we always use **Flask-SQLAlchemy**. This page shows plain SQLAlchemy, the library that Flask-SQLAlchemy is built on, so that we understand what `db.Model`, `db.session` and `db.engine` really are. It is only for learning purposes and can be skipped if you lack time.
 
 Flask-SQLAlchemy does not have its own ORM. It is a thin layer that **configures SQLAlchemy for a Flask app**: it reads the database URI from `app.config`, creates the engine, gives us a ready-made base class (`db.Model`) and a session that is cleaned up after every request (`db.session`). If we remove Flask, we have to do these steps ourselves.
 
@@ -34,9 +35,7 @@ engine = create_engine("sqlite:///example.db", echo=True)  # echo=True prints ev
 
 We first create our own base class, then inherit our models from it. SQLAlchemy 2.0 supports two styles of writing columns; both create exactly the same tables.
 
-:::tabs
-
-== Classic style (same as the course)
+#### Classic style (same as the course)
 
 ```python
 from sqlalchemy import Column, Integer, String, ForeignKey
@@ -65,7 +64,7 @@ class Article(Base):
         return f"<Article {self.title}>"
 ```
 
-== Typed style (SQLAlchemy 2.0)
+#### Typed style (SQLAlchemy 2.0)
 
 ```python
 from typing import List, Optional
@@ -89,14 +88,13 @@ class Article(Base):
     author: Mapped[Optional["User"]] = relationship(back_populates="articles")
 ```
 
-:::
-
-::: info Typed style in short
-- The Python type decides the column type: `Mapped[int]` → `INTEGER`, `Mapped[str]` → `VARCHAR`.
-- `Mapped[X]` means `nullable=False`, `Mapped[Optional[X]]` means `nullable=True`.
-- `Mapped[List["Article"]]` tells SQLAlchemy the relationship is a collection (one-to-many), `Mapped["User"]` a single object, so `uselist` is rarely needed.
-- Editors and type checkers (mypy, Pylance) understand these attributes, which is the main reason for this style.
-:::
+> [!NOTE]
+> **Typed style in short**
+>
+> - The Python type decides the column type: `Mapped[int]` → `INTEGER`, `Mapped[str]` → `VARCHAR`.
+> - `Mapped[X]` means `nullable=False`, `Mapped[Optional[X]]` means `nullable=True`.
+> - `Mapped[List["Article"]]` tells SQLAlchemy the relationship is a collection (one-to-many), `Mapped["User"]` a single object, so `uselist` is rarely needed.
+> - Editors and type checkers (mypy, Pylance) understand these attributes, which is the main reason for this style.
 
 Differences from Flask-SQLAlchemy models:
 - `__tablename__` is **required**; Flask-SQLAlchemy generates it from the class name for us.
@@ -149,7 +147,9 @@ with Session(engine) as session:
     print(session.scalars(select(Article)).all())   # [<Article Flask Basics>]
 ```
 
-::: details `session.begin()`: commit automatically
+<details>
+<summary><code>session.begin()</code>: commit automatically</summary>
+
 Instead of calling `commit()` ourselves we can let a block do it: the transaction is committed at the end of the block, or rolled back if an exception happens inside it.
 
 ```python
@@ -160,19 +160,21 @@ with Session(engine) as session:
 ```
 
 Flask-SQLAlchemy does not commit for us: we still call `db.session.commit()` in our views.
-:::
 
-::: warning Lazy loading after the session is closed
-When the `with` block ends, the session is closed and the objects become **detached**. Accessing a relationship that was not loaded yet then fails:
+</details>
 
-```python
-with Session(engine) as session:
-    user = session.get(User, 1)
-print(user.articles)   # DetachedInstanceError: ... is not bound to a Session
-```
-
-Either access what you need inside the block, or load it eagerly (e.g. `lazy="selectin"`). In Flask-SQLAlchemy this happens less often because `db.session` lives for the whole request.
-:::
+> [!WARNING]
+> **Lazy loading after the session is closed**
+>
+> When the `with` block ends, the session is closed and the objects become **detached**. Accessing a relationship that was not loaded yet then fails:
+>
+> ```python
+> with Session(engine) as session:
+>     user = session.get(User, 1)
+> print(user.articles)   # DetachedInstanceError: ... is not bound to a Session
+> ```
+>
+> Either access what you need inside the block, or load it eagerly (e.g. `lazy="selectin"`). In Flask-SQLAlchemy this happens less often because `db.session` lives for the whole request.
 
 ## Using Your Own Base Class with Flask-SQLAlchemy
 

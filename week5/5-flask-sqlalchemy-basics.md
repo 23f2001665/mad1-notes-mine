@@ -48,7 +48,6 @@ Flask-SQLAlchemy is a Flask extension that integrates SQLAlchemy with Flask and 
 | **Flask Integration** | Integrates SQLAlchemy with Flask application configuration and application context. | `db.init_app(app)` |
 | **Performance** | Supports efficient query execution, indexing and other database optimisation techniques. | Filtering records using indexed columns. |
 
-
 ### How to install Flask-SQLAlchemy?
 
 We can install Flask-SQLAlchemy using pip:
@@ -167,7 +166,6 @@ Now SQLAlchemy knows that we want to use a SQLite database file named `example.d
 
 This step must be done before initializing SQLAlchemy, as SQLAlchemy needs to know the database URI when it is initialized. If we try to initialize SQLAlchemy without setting the DATABASE_URI, we will get an error because SQLAlchemy will not know how to connect to the database.
 
-
 ### Step 3: Initializing SQLAlchemy
 
 After configuring the database URI, we can create an instance of the SQLAlchemy class and pass our Flask application to it. This will initialize SQLAlchemy and allow us to use it in our application.
@@ -213,8 +211,6 @@ with app.app_context():
 
 `db.create_all()` only creates tables that **do not exist yet**, so running it again is harmless. However, it **never alters an existing table**: if we later add/remove/change a column in a model, `create_all()` will not update that table. To change the schema of an existing database we either drop and recreate the tables (losing data) or use a migration tool like `Flask-Migrate`.
 
-
-
 A few methods in flask and sqlalchemy require an application context to be active in order to work properly. An application context is a way for Flask to keep track of the current application and its configuration.
 
 An application context can be activated in the following ways:
@@ -253,8 +249,6 @@ if __name__ == '__main__':
 ```
 
 In this example, we have defined a route `/create_tables`; when it is accessed, Flask handles the request inside an application context, so `db.create_all()` works and creates the database tables based on our models. We can simply run the application and access `http://localhost:5000/create_tables` in our browser to create the tables without needing to manually push the application context. This is a convenient way to use the context-specific features of Flask and SQLAlchemy without needing to worry about managing the application context manually.
-
-
 
 In real world applications, we would typically use a migration tool like `Flask-Migrate` to manage our database schema changes over time, rather than using `db.create_all()` directly. This allows us to keep track of changes to our database schema and apply those changes in a controlled manner, especially when working with production databases.
 

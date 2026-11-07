@@ -66,7 +66,6 @@ CREATE TABLE users (
 );
 ```
 
-
 Most of the time, we will use the model class approach as it provides more functionality and is easier to work with because of its object-oriented nature. The `db.Table` approach is more suitable for defining association tables in many-to-many relationships, where we do not need to define a model class.
 
 ## DataTypes and Constraints
@@ -92,8 +91,6 @@ When defining columns in a model, we can specify the data type and various const
 - `scale`: Number of digits after the decimal point.
 - Example: `db.Numeric(10, 2)` allows 10 digits in total, with 2 digits after the decimal point.
 - **SQLite caveat:** SQLite uses dynamic typing and does **not** enforce lengths or precision. `db.String(80)` will happily store a 500-character string and `db.Numeric(10, 2)` is not checked (SQLAlchemy also warns that SQLite has no native decimal type). Other databases such as PostgreSQL/MySQL do enforce these limits, so the length still documents our intent and matters if we change databases.
-
-
 
 ### Column Constraints and Options in SQLAlchemy
 

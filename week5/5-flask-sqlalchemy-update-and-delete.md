@@ -70,7 +70,6 @@ if user:
 
 In this example, we query the user with a specific id, mark it for deletion with `db.session.delete(user)`, and then commit, which sends the `DELETE` to the database. Relationship cascades (e.g. `cascade='all, delete-orphan'`) are applied here because we deleted through the ORM object.
 
-
 `db.session.delete` takes only a single record as an argument. To delete multiple records, we can use the `delete()` method on a query, similar to how we update multiple records. Here’s an example:
 
 ```python
@@ -80,7 +79,6 @@ db.session.commit()  # Commit the changes to the database
 ```
 
 In this example, we delete all users whose name starts with 'Old' with a single `DELETE ... WHERE` statement. The `synchronize_session` parameter is used to specify how the session should be synchronized after the delete operation. As mentioned above, ORM cascades are not applied by this bulk delete.
-
 
 ## Non ORM Way to Update and Delete Records
 

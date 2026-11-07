@@ -49,7 +49,6 @@ System checks:
 
 Only then is the record created.
 
-
 ## 2. READ Operation
 The **Read** operation retrieves data from the database without modifying it.
 
@@ -58,8 +57,6 @@ The **Read** operation retrieves data from the database without modifying it.
 2. Summary statistics for librarian dashboard: aggregation functions such as
 - `COUNT` to get total number of books 
 - `GROUP BY` to get number of books per category (maybe plot a `matplotlib` piechart of the same).
-
-
 
 ## 3. UPDATE Operation
 
@@ -83,8 +80,6 @@ After correction:
 
 Only borrow_date field is modified.
 
-
-
 ## 4. DELETE Operation
 
 The **Delete** operation removes records from the database.
@@ -104,14 +99,12 @@ When a book is returned, the borrow entry may be deleted:
 Delete:
 | S101 | B2 | 2024-01-15 |
 
-
 #### Database Optimization
 1. **Read-Heavy Systems**: Large number of queries, few insertions or updates.
 Optimization: Indexing, Caching
 
 2. **Write-Heavy Systems**: Frequent inserts and updates<br>
 Optimization: Efficient transaction logging, Data durability mechanisms.
-
 
 ## API – Application Programming Interface
 
@@ -137,7 +130,6 @@ The client only knows <span style="font-weight:bold; color:rgb(98, 151, 208)">AP
 - **Efficiency**: allows reuse of backend services
 - **Automation**: enables systems to interact without human input
 - **Security** : controlled access via authentication and authorization
-
 
 A Controller groups related actions logically:
 | Controller             | Actions                                      |
@@ -166,9 +158,8 @@ def get_books():
 The decorator binds the URL `/books` to the function `get_books()`
 - When a request hits `/books`, this function is executed
 
-<LibraryAPI />
-
-:::details `flask_restful` code for the same example
+<details>
+<summary><code>flask_restful</code> code for the same example</summary>
 
 ```py
 from flask import Flask
@@ -189,7 +180,6 @@ class Student(db.Model):
     name = db.Column(db.String(20), nullable=False)
     dept = db.Column(db.String(5))
 
-
 class Book(db.Model):
     book_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -197,13 +187,11 @@ class Book(db.Model):
     edition = db.Column(db.String(10))
     publisher = db.Column(db.String(100))
 
-
 class Borrow(db.Model):
     borrow_id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.student_id'))
     book_id = db.Column(db.Integer, db.ForeignKey('book.book_id'))
     borrow_date = db.Column(db.String(20))
-
 
 with app.app_context():
     db.create_all()
@@ -271,7 +259,6 @@ class BookListResource(Resource):
 
         return {"message": "Book created"}, 201
 
-
 class BookResource(Resource):
 
     @marshal_with(book_fields)
@@ -327,7 +314,6 @@ class StudentListResource(Resource):
         db.session.commit()
 
         return {"message": "Student created"}, 201
-
 
 class StudentResource(Resource):
 
@@ -388,7 +374,6 @@ class BorrowListResource(Resource):
 
         return {"message": "Borrow created"}, 201
 
-
 class BorrowResource(Resource):
 
     @marshal_with(borrow_fields)
@@ -438,6 +423,7 @@ if __name__ == "__main__":
     app.run(debug=True)
 ```
 
+</details>
 
 ##### Example Testing CURL Requests
 Create Student
