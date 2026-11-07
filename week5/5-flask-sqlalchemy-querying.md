@@ -337,7 +337,7 @@ from sqlalchemy import and_, or_, all_
 # 1. IN → filter by multiple values
 # ============================================================
 print("\nIN operator:")
-users_in = session.query(User).filter(
+users_in = db.session.query(User).filter(
     User.city.in_(["New York", "Los Angeles"])
 ).all()
 print(users_in)
@@ -348,7 +348,7 @@ print(users_in)
 # 2. LIKE → pattern matching
 # ============================================================
 print("\nLIKE operator:")
-users_like = session.query(User).filter(
+users_like = db.session.query(User).filter(
     User.username.like("A%")
 ).all()
 print(users_like)
@@ -363,8 +363,8 @@ print("\nEXISTS operator:")
 
 U2 = aliased(User)
 
-users_exists = session.query(User).filter(
-    session.query(U2.id)
+users_exists = db.session.query(User).filter(
+    db.session.query(U2.id)
     .filter(U2.city == User.city, U2.budget > 1400)
     .exists()
 ).all()
@@ -379,9 +379,9 @@ print(users_exists)
 # ============================================================
 print("\nANY operator:")
 
-subq_any = session.query(User.budget).filter(User.city == "Chicago")
+subq_any = db.session.query(User.budget).filter(User.city == "Chicago")
 
-users_any = session.query(User).filter(
+users_any = db.session.query(User).filter(
     User.budget > any_(subq_any)
 ).all()
 
@@ -395,9 +395,9 @@ print(users_any)
 # ============================================================
 print("\nALL operator:")
 
-subq_all = session.query(User.budget).filter(User.city == "New York")
+subq_all = db.session.query(User.budget).filter(User.city == "New York")
 
-users_all = session.query(User).filter(
+users_all = db.session.query(User).filter(
     User.budget > all_(subq_all)
 ).all()
 
@@ -410,9 +410,9 @@ print(users_all)
 # ============================================================
 print("\nALL (max budget):")
 
-subq_max = session.query(User.budget)
+subq_max = db.session.query(User.budget)
 
-max_user = session.query(User).filter(
+max_user = db.session.query(User).filter(
     User.budget >= all_(subq_max)
 ).all()
 
