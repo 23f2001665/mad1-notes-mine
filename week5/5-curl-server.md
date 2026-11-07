@@ -43,16 +43,18 @@ HTTP 1.1 variant → large persistent connections and pipelining<br>
 
 >✅ TODO: Try `curl wttr.in/{type city name}` on your wsl terminal like `curl wttr.in/chennai`
 
+**Client Request**
 
-
-```bash [Client Request]
+```bash
 GET / HTTP/1.1 # http method & version
 Host: localhost:5000 or www.domain.com
 User-Agent: curl/7.64.1 # version
 Accept: */* #accepted file formats
 ```
 
-```bash [Server Response]
+**Server Response**
+
+```bash
 HTTP/1.1 200 OK #status code
 Server: SimpleHTTP/0.6 Python/3.x
 Content-Type: text/html
@@ -63,9 +65,6 @@ Content-Length: <file-size> #10KB
  `127.0.0.1 (IPv4)` and `::1 (IPv6)` are **loopback** addresses. Packets sent to these addresses:
 - Never leave the host machine & are looped through the network interface card only.
 - This can be used for **diagnostic** purposes to verify that the internal path through the TCP/IP protocols is working.
-
-
-<CurlRestAPI />
 
 | **Command**          | **Description**                                          |
 |----------------------|----------------------------------------------------------|

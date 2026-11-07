@@ -20,7 +20,8 @@ SELECT * FROM users WHERE id = 1;
 we can do this
 
 ```python
-users = User.query.get(1)
+user = db.session.get(User, 1)   # modern (SQLAlchemy 2.x) way
+# user = User.query.get(1)       # older/legacy style, still works but shows a LegacyAPIWarning
 ```
 
 ## What is Flask-SQLAlchemy?
@@ -42,11 +43,10 @@ Flask-SQLAlchemy is a Flask extension that integrates SQLAlchemy with Flask and 
 | **Security** | Uses parameterized queries through SQLAlchemy's query system, helping protect against SQL injection. | `User.query.filter_by(username=username).first()` |
 | **Session Management** | Provides `db.session` to manage database operations such as adding, updating and deleting records. | `db.session.add(user)` |
 | **Schema Generation** | Allows us to create database tables based on our model definitions. | `db.create_all()` |
-| **Migrations** | Supports schema changes over time through Flask-Migrate. | Adding a new column to an existing table. |
+| **Migrations** | Not built into Flask-SQLAlchemy itself; provided by the separate **Flask-Migrate** extension (built on Alembic), which works with Flask-SQLAlchemy models. | Adding a new column to an existing table. |
 | **Validation Integration** | Can work with external validation libraries to validate data before storing it. | Flask-WTF, Marshmallow. |
 | **Flask Integration** | Integrates SQLAlchemy with Flask application configuration and application context. | `db.init_app(app)` |
 | **Performance** | Supports efficient query execution, indexing and other database optimisation techniques. | Filtering records using indexed columns. |
-
 
 ### How to install Flask-SQLAlchemy?
 
@@ -162,10 +162,9 @@ We have to set the DATABASE_URI in our Flask application configuration before in
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'  # Configure the database URI
 ```
 
-Now SQLAlchemy knows that we want to use a SQLite database located at `example.db` in the current directory. Under default configuration, it will create an instance of the database if it does not already exist and place it under a file named `example.db` inside directory named `instance` in the current directory.
+Now SQLAlchemy knows that we want to use a SQLite database file named `example.db`. In Flask-SQLAlchemy 3.x, a *relative* SQLite path is resolved relative to the app's **`instance` folder**, so the file ends up at `instance/example.db` (the folder is created automatically). The file itself is created by SQLite the first time a connection is actually made (for example, when we call `db.create_all()`), not at the moment we write `SQLAlchemy(app)`.
 
 This step must be done before initializing SQLAlchemy, as SQLAlchemy needs to know the database URI when it is initialized. If we try to initialize SQLAlchemy without setting the DATABASE_URI, we will get an error because SQLAlchemy will not know how to connect to the database.
-
 
 ### Step 3: Initializing SQLAlchemy
 
@@ -210,9 +209,7 @@ with app.app_context():
     db.create_all()  # Create the database tables based on our models
 ```
 
-This code should be run once when setting up the application to create the necessary tables in the database. If we make changes to our models later on, we will need to use a migration tool like `Flask-Migrate` to update the database schema accordingly.
-
-
+`db.create_all()` only creates tables that **do not exist yet**, so running it again is harmless. However, it **never alters an existing table**: if we later add/remove/change a column in a model, `create_all()` will not update that table. To change the schema of an existing database we either drop and recreate the tables (losing data) or use a migration tool like `Flask-Migrate`.
 
 A few methods in flask and sqlalchemy require an application context to be active in order to work properly. An application context is a way for Flask to keep track of the current application and its configuration.
 
@@ -220,9 +217,10 @@ An application context can be activated in the following ways:
 
 - using `with app.app_context():` block
 - using `app.app_context().push()` to manually push the application context onto the stack
-- using a dummy request to trigger the application context (e.g., by making a request to a route in our application)
+- handling a request: whenever Flask handles a request to one of our routes, it automatically pushes an application context (and a request context) for the duration of that request
+- using `app.test_request_context()` to create a *dummy* request context (useful in scripts/tests), which also pushes an application context
 
-A dummy request can be used to access context-specific features of flask and sqlalchemy without needing to manually push the application context. Let's see an example of how to use a dummy request to trigger the application context:
+Inside a view function we therefore never need to push the context manually. Let's see an example where a request to a route provides the application context:
 
 ```python
 from flask import Flask
@@ -250,9 +248,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-In this example, we have defined a route `/create_tables` that, when accessed, will trigger the application context and create the database tables based on our models. We can simply run the application and access `http://localhost:5000/create_tables` in our browser to create the tables without needing to manually push the application context. This is a convenient way to use the context-specific features of Flask and SQLAlchemy without needing to worry about managing the application context manually.
-
-
+In this example, we have defined a route `/create_tables`; when it is accessed, Flask handles the request inside an application context, so `db.create_all()` works and creates the database tables based on our models. We can simply run the application and access `http://localhost:5000/create_tables` in our browser to create the tables without needing to manually push the application context. This is a convenient way to use the context-specific features of Flask and SQLAlchemy without needing to worry about managing the application context manually.
 
 In real world applications, we would typically use a migration tool like `Flask-Migrate` to manage our database schema changes over time, rather than using `db.create_all()` directly. This allows us to keep track of changes to our database schema and apply those changes in a controlled manner, especially when working with production databases.
 
@@ -294,9 +290,19 @@ user.email = 'john_updated@example.com'  # Update the user's email
 db.session.commit()  # Commit the changes to the database
 ```
 
-In this example, if we try to update the user's email to an email that already exists for another user in the database, we will get an error because of the unique constraint on the email column. Therefore, it is important to ensure that any updates we make to the database do not violate any constraints defined in our models.
+In this example, if we try to update the user's email to an email that already exists for another user in the database, we will get a `sqlalchemy.exc.IntegrityError` (raised when the change is flushed, i.e. at `commit()`) because of the unique constraint on the email column. After such an error the session's transaction is no longer usable, so we must call `db.session.rollback()` before using the session again. Therefore, it is important to ensure that any updates we make to the database do not violate any constraints defined in our models.
 
-We will learn more about contraints in the upcoming sections when we discuss defining models in more detail.
+```python
+from sqlalchemy.exc import IntegrityError
+
+try:
+    user.email = 'jane@example.com'   # already used by another user
+    db.session.commit()
+except IntegrityError:
+    db.session.rollback()             # undo the failed transaction
+```
+
+We will learn more about constraints in the upcoming sections when we discuss defining models in more detail.
 
 #### Deleting Records
 
@@ -425,13 +431,19 @@ if __name__ == '__main__':
 
 ## Extra: States of SQLAlchemy Objects
 
-In SQLAlchemy, objects can be in one of the following states:
+In SQLAlchemy, an ORM object is always in one of the following states (relative to a session):
 
-- **Transient**: An object that has been created but is not yet associated with a session. It is not yet persisted in the database.
-- **Pending**: An object that has been added to a session but has not yet been committed to the database. It is scheduled to be persisted in the database when the session is committed.
-- **Persistent**: An object that is associated with a session and has been committed to the database. It is persisted in the database and can be queried and updated.
-- **Detached**: An object that was previously associated with a session but has been removed from the session. It is not currently associated with any session and is not persisted in the database.
-- **Deleted**: An object that has been marked for deletion from the database. It is scheduled to be removed from the database when the session is committed.
+- **Transient**: The object has just been created (`User(...)`), is not in any session and has no row in the database.
+- **Pending**: The object has been added to a session with `db.session.add()`, but no `INSERT` has been sent to the database yet.
+- **Persistent**: The object is in a session **and** has a corresponding row in the database. A pending object becomes persistent when the session is **flushed** (a `commit()` flushes automatically, and so does running a query because of *autoflush*). Objects returned by a query are also persistent.
+- **Deleted**: The object was marked with `db.session.delete()` and the `DELETE` statement has been flushed, but the transaction is not yet committed. (Right after calling `db.session.delete()` and before the flush, the object is still *persistent*, just marked for deletion.)
+- **Detached**: The object is not attached to any session. This happens after `db.session.expunge(obj)` / `db.session.close()`, or after a deleted object's transaction is committed. A detached object usually still corresponds to a row in the database (unless it was deleted); it just is no longer tracked by a session, so lazy-loading its relationships will fail.
+
+```text
+User(...) ──add()──> pending ──flush/commit──> persistent ──delete()+flush──> deleted ──commit──> detached
+                                                   │
+                                                   └──expunge()/close()──> detached
+```
 
 ## Summary
 
