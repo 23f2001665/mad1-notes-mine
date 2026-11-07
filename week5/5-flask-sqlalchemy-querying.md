@@ -21,6 +21,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'users'   # without this, Flask-SQLAlchemy would name the table 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     city = db.Column(db.String(120), nullable=False)
@@ -43,11 +44,11 @@ db.session.add_all([user1, user2, user3, user4, user5])
 db.session.commit()
 ```
 
-:::
+> All the snippets below must run inside an application context (`with app.app_context():` or inside a view function).
 
 ## Query Object
 
-In Flask-SQLAlchemy, the `query` object is used to query the database. It provides various methods to filter, order, and manipulate the results. The basic syntax for querying a model is as follows:
+In Flask-SQLAlchemy, the `query` object (the *legacy* `Query` API) is used to query the database. It still works fully in Flask-SQLAlchemy 3.x, but the modern SQLAlchemy 2.0 style is `db.session.execute(db.select(User)...)` (see the end of this page and the *Select vs Query API* note). It provides various methods to filter, order, and manipulate the results. The basic syntax for querying a model is as follows:
 
 ```python
 query_object = db.session.query(User)
@@ -68,8 +69,6 @@ users.city AS users_city,
 users.budget AS users_budget
 FROM users
 ```
-
-:::info
 
 The `query` object provided by Model itself is just a convenient shortcut to `db.session.query(Model)`. Both of them will give you the same query object that you can use to perform various operations on the database.
 
@@ -94,10 +93,10 @@ The `.get` method is used to retrieve a single record by its primary key. It tak
 
 The `.get` method can be invoked in two ways:
 
-- Using the `query` object: `Model.query.get(primary_key_value)`. This is depricated legacy feature.
-- Directly on the session: `db.session.get(Model, primary_key)`. Recommended by Latest SQLAlchemy specification.
+- Using the `query` object: `Model.query.get(primary_key_value)`. This is a *legacy* feature (it still works but emits a `LegacyAPIWarning` in SQLAlchemy 2.x).
+- Directly on the session: `db.session.get(Model, primary_key)`. Recommended in SQLAlchemy 2.x.
 
-Internally both methods do exactly same thing.
+Both do the same job: they first look in the session's *identity map* (objects already loaded) and only send a `SELECT` if the object is not there.
 
 ```python
 # assuming the database we have created earlier
@@ -116,9 +115,13 @@ print(user4)  # <User Charlie>
 We can further extend the functionality of `.get` method by using `.get_or_404` method. This method is commonly used in Flask applications to handle cases where a requested resource is not found. It works similarly to `.get`, but instead of returning `None` when the record is not found, it raises a `404 Not Found` error.
 
 ```python
-user1 = db.session.query(User).get_or_404(1)
-user2 = db.session.query(User).get_or_404(6) # this will raise a 404 error
+user1 = db.session.query(User).get_or_404(1)   # legacy Query style
+user2 = db.session.query(User).get_or_404(6)   # raises werkzeug.exceptions.NotFound (404)
+
+user3 = db.get_or_404(User, 1)                 # modern Flask-SQLAlchemy 3.x style
 ```
+
+`get_or_404` (and `first_or_404`, `one_or_404`, `paginate`) are Flask-SQLAlchemy additions; they are available on `db.session.query(...)` only because Flask-SQLAlchemy configures the session to use its own `Query` class.
 
 ### `.first`
 
@@ -137,7 +140,7 @@ print(first_user)  # <User Alice>
 
 ### `.one`
 
-The `.one` method is used to retrieve exactly one record that matches the query criteria. It returns the record if it exists, but raises an exception if there are no records or if there are multiple records that match the criteria.
+The `.one` method is used to retrieve exactly one record that matches the query criteria. It returns the record if it exists, but raises `sqlalchemy.exc.NoResultFound` if there are no records and `sqlalchemy.exc.MultipleResultsFound` if more than one record matches.
 
 ```python
 try:
@@ -149,7 +152,7 @@ except Exception as e:
 
 We can also use `.one_or_404`.
 
-`.all`
+### `.all`
 
 The `.all` method is used to retrieve all records that match the query criteria. It returns a list of records, which can be empty if no records match the criteria.
 
@@ -160,19 +163,23 @@ print(all_users)  # [<User Alice>, <User Bob>, <User Charlie>, <User David>, <Us
 
 ### `.scalar`
 
-The `.scalar` method is used to retrieve a single value from the query. It returns the value of the first column of the first record that matches the query criteria. If no records match the criteria, it returns `None`. If there are more than one record that matches the criteria, it raises an exception.
+The `.scalar` method is used to retrieve a single value from the query. It returns the value of the first column of the result. If no records match the criteria, it returns `None`. If **more than one** record matches, it raises `MultipleResultsFound` (internally the legacy `Query.scalar()` calls `.one()`).
 
 ```python
-# Get the username of the first user
+# .first() on a column query returns a Row (tuple-like)
 username = db.session.query(User.username).first()
 print(username)  # ('Alice',)
-# Get the budget of the first user
-username = db.session.query(User.username).scalar()
+
+# .scalar() returns the bare value, but the query must match at most one row
+username = db.session.query(User.username).filter_by(id=1).scalar()
 print(username)  # Alice
+
+db.session.query(User.username).scalar()  # 5 rows -> raises MultipleResultsFound
 ```
 
+Typical use of `.scalar()` is with aggregate queries which always return one row, e.g. `db.session.query(func.count(User.id)).scalar()`.
 
-We will explore a bit more about session this type of query later in this section.
+**Careful:** in the SQLAlchemy 2.0 style, `db.session.execute(select(User.username)).scalar()` is *not* strict: it simply returns the first column of the first row. Its strict version is `.scalar_one()`.
 
 
 
@@ -231,11 +238,16 @@ The `.label` method is used to label the columns in the result set. This can be 
 
 ```python
 # Get the usernames of users with labels    
-usernames_with_labels = User.with_entities(User.username.label('user_name')).all()
+usernames_with_labels = User.query.with_entities(User.username.label('user_name')).all()
 usernames_cities_with_labels = db.session.query(User.username.label('user_name'), User.city.label('city')).all()
 
 print(usernames_with_labels)  # [('Alice',), ('Bob',), ('Charlie',), ('David',), ('Eve',)]
 print(usernames_cities_with_labels)  # [('Alice', 'New York'), ('Bob', 'Los Angeles'), ('Charlie', 'Chicago'), ('David', 'New York'), ('Eve', 'Los Angeles')]
+
+# the label does not show up in the tuple repr; it becomes the attribute/key name of each row
+row = usernames_with_labels[0]
+print(row.user_name)             # Alice
+print(list(row._mapping.keys())) # ['user_name']
 ```
 
 ### `.add_columns`
@@ -279,7 +291,7 @@ print(rich_users)  # [<User Bob>, <User David>]
 ```
 
 
-The `.filter` method allows you to use a wide range of operators and functions to create complex filtering criteria. You can combine multiple conditions using logical operators such as `and_`, `or_`, and `not_` from the `sqlalchemy` library.
+The `.filter` method allows you to use a wide range of operators and functions to create complex filtering criteria. You can combine multiple conditions using logical operators such as `and_`, `or_`, and `not_` from the `sqlalchemy` library. Passing several conditions to `.filter(a, b)` (or chaining `.filter(a).filter(b)`) also combines them with AND.
 
 ```python
 from sqlalchemy import and_, or_
@@ -313,25 +325,26 @@ We just saw that we can use various operators in the `.filter` method to create 
 - `>`: Greater than
 - `>=`: Greater than or equal to
 - `in_`: In a list of values
-- `notin_`: Not in a list of values
-- `like`: Pattern matching using SQL LIKE syntax
-- `ilike`: Case-insensitive pattern matching using SQL LIKE syntax
+- `not_in`: Not in a list of values (older name: `notin_`)
+- `like`: Pattern matching using SQL LIKE syntax (note: in **SQLite**, `LIKE` is already case-insensitive for ASCII letters, so `like('a%')` also matches `'Alice'`)
+- `ilike`: Case-insensitive pattern matching (SQLAlchemy renders it as `lower(x) LIKE lower(y)`, so it is case-insensitive on every database)
 - `and_`: Logical AND operator
 - `or_`: Logical OR operator
 - `not_`: Logical NOT operator
-- `between`: Between two values
+- `.between(a, b)`: Between two values (a column method, e.g. `User.budget.between(900, 1200)`)
 - `is_`: Is (used for comparing with `None`)
-- `isnot`: Is not (used for comparing with `None`)
-- `any_` / `all_`: SQL operators (ANY, ALL) used with subqueries
-- `.any()`: relationship method (completely different)
-- `exists`: Used for filtering based on the existence of related records
-- `notexists`: Used for filtering based on the non-existence of related records`
+- `is_not`: Is not (used for comparing with `None`; older name: `isnot`)
+- `any_` / `all_`: SQL operators (ANY, ALL) used with subqueries — **not supported by SQLite** (works on PostgreSQL)
+- `.any()` / `.has()`: relationship methods that generate an `EXISTS` subquery (completely different from `any_`)
+- `exists`: Used for filtering based on the existence of (related) records
+- "not exists": there is no `notexists` function; negate the exists clause with `~` or `not_()`, e.g. `~query.exists()`
 - **`func`: Used to call SQL functions (e.g., `func.count()`, `func.sum()`, etc.)** we will cover this in more details in the Aggregating results section.
 
 While we will not cover example of all of these operators here, you can refer to the SQLAlchemy documentation for a comprehensive list of operators and their usage. Let's see a few of them: 
 
 ```python
-from sqlalchemy import and_, or_, all_
+from sqlalchemy import and_, or_, any_, all_, select, func
+from sqlalchemy.orm import aliased
 
 # ============================================================
 # 1. IN → filter by multiple values
@@ -370,16 +383,27 @@ users_exists = db.session.query(User).filter(
 ).all()
 
 print(users_exists)
-# → Users in cities where at least one user has budget > 1400
+# → [<User Bob>, <User Eve>]  (Los Angeles is the only city with a budget > 1400)
+
+# NOT EXISTS -> negate with ~
+users_not_exists = db.session.query(User).filter(
+    ~db.session.query(U2.id)
+    .filter(U2.city == User.city, U2.budget > 1400)
+    .exists()
+).all()
+print(users_not_exists)
+# → [<User Alice>, <User Charlie>, <User David>]
 
 
 # ============================================================
 # 4. ANY → greater than ANY (at least one)
 # Compare with Chicago users
+# ⚠ ANY / ALL are NOT supported by SQLite (syntax error).
+#   Examples 4, 5 and BONUS only run on databases like PostgreSQL.
 # ============================================================
 print("\nANY operator:")
 
-subq_any = db.session.query(User.budget).filter(User.city == "Chicago")
+subq_any = db.session.query(User.budget).filter(User.city == "Chicago").scalar_subquery()
 
 users_any = db.session.query(User).filter(
     User.budget > any_(subq_any)
@@ -395,14 +419,14 @@ print(users_any)
 # ============================================================
 print("\nALL operator:")
 
-subq_all = db.session.query(User.budget).filter(User.city == "New York")
+subq_all = db.session.query(User.budget).filter(User.city == "New York").scalar_subquery()
 
 users_all = db.session.query(User).filter(
     User.budget > all_(subq_all)
 ).all()
 
 print(users_all)
-# → Budget greater than ALL NY budgets (1000, 1200)
+# → [<User Bob>]  Budget greater than ALL NY budgets (1000, 1200)
 
 
 # ============================================================
@@ -410,16 +434,33 @@ print(users_all)
 # ============================================================
 print("\nALL (max budget):")
 
-subq_max = db.session.query(User.budget)
+subq_max = db.session.query(User.budget).scalar_subquery()
 
 max_user = db.session.query(User).filter(
     User.budget >= all_(subq_max)
 ).all()
 
 print(max_user)
-# → User with highest budget
+# → [<User Bob>]  User with highest budget
 
+
+# ============================================================
+# SQLite-friendly equivalents of ANY / ALL using MIN / MAX
+# ============================================================
+# > ANY(...)  is the same as  > MIN(...)
+users_any_sqlite = db.session.query(User).filter(
+    User.budget > select(func.min(User.budget)).where(User.city == "Chicago").scalar_subquery()
+).all()
+print(users_any_sqlite)  # [<User Alice>, <User Bob>, <User David>, <User Eve>]
+
+# > ALL(...)  is the same as  > MAX(...)
+users_all_sqlite = db.session.query(User).filter(
+    User.budget > select(func.max(User.budget)).where(User.city == "New York").scalar_subquery()
+).all()
+print(users_all_sqlite)  # [<User Bob>]
 ```
+
+(`> ANY` equals `> MIN` and `> ALL` equals `> MAX` as long as the subquery returns at least one non-NULL value.)
 
 ## Ordering and Limiting Results
 
@@ -459,8 +500,6 @@ users_with_offset = db.session.query(User).order_by(desc(User.budget)).offset(2)
 print(users_with_offset)
 ```
 
-:::info
-
 While `.limit` and `.offset` can be used for simple pagination, Flask-SQLAlchemy also provides a more convenient method called `.paginate`, which we will cover in the next section. The `.paginate` method handles both limiting and offsetting the results based on the page number and items per page.
 
 example of using `.limit` and `.offset` for pagination:
@@ -472,8 +511,6 @@ items_per_page = 2
 users_page_2 = db.session.query(User).order_by(User.id).limit(items_per_page).offset((page_number - 1) * items_per_page).all()
 print(users_page_2)
 ```
-
-:::
 
 ## Pagination
 
@@ -498,8 +535,13 @@ The `Pagination` object returned by the `paginate` method has several attributes
 - `pages`: The total number of pages.
 - `has_next`: A boolean indicating if there is a next page.
 - `has_prev`: A boolean indicating if there is a previous page.
-- `next_num`: The page number of the next page.
-- `prev_num`: The page number of the previous page.
+- `next_num`: The page number of the next page (`None` if there is no next page).
+- `prev_num`: The page number of the previous page (`None` if there is no previous page).
+
+Notes:
+- `paginate` is a Flask-SQLAlchemy feature. The modern form is `db.paginate(db.select(User).order_by(User.id), page=1, per_page=2)`.
+- If `page` and `per_page` are not passed, they are read from the request's query string (`?page=2&per_page=10`).
+- By default (`error_out=True`) an out-of-range or invalid page aborts with a **404** error.
 
 We can use these attributes to create pagination controls in our application, allowing users to navigate through the pages of results.
 
@@ -557,18 +599,28 @@ from sqlalchemy import text
 result = db.session.execute(text("SELECT * FROM users"))
 users = result.fetchall()
 print(users)
+# [(1, 'Alice', 'New York', 1000.0), (2, 'Bob', 'Los Angeles', 1500.0), ...]
 ```
 
-We all also use `select` construct from SQLAlchemy to execute raw SQL queries in a more structured way.
+Note that raw SQL returns plain `Row` objects (tuple-like), **not** `User` objects. Always pass values as bound parameters (`text("... WHERE city = :city")`, `{"city": city}`) instead of building the string with f-strings, to avoid SQL injection.
+
+## The SQLAlchemy 2.0 Style: `select()`
+
+`select()` is **not** raw SQL. It is SQLAlchemy's modern (2.0-style) way of building queries in Python; it is the recommended replacement for the legacy `Model.query` / `db.session.query()` API.
 
 ```python
 from sqlalchemy import select
-# Execute a raw SQL query using select construct
+# Build a query with select() and execute it with the session
 stmt = select(User).where(User.city == 'New York')
 result = db.session.execute(stmt)
 users = result.scalars().all()
 print(users)  # [<User Alice>, <User David>]
+
+# shortcut for execute(...).scalars()
+users = db.session.scalars(stmt).all()
 ```
+
+`db.session.execute(stmt)` returns a `Result` whose rows are tuples (here `(<User Alice>,)`); `.scalars()` takes the first element of each row, giving `User` objects.
 
 
 In this section, we have not covered querying across relationships and joining tables. This is a more advanced topic that involves understanding how to define relationships between models and how to query across those relationships using joins. We will cover this topic in more detail in a later section when we discuss relationships in Flask-SQLAlchemy.
@@ -583,12 +635,16 @@ In this section, we have covered various methods for querying the database using
    These methods execute the query and return results. Once called, the SQL query is sent to the database.
 
    Examples:
+   - .get() → object by primary key or None
    - .first() → first row or None
    - .one() → exactly one row (strict)
    - .all() → list of rows
-   - .scalar() → single value (strict in modern versions)
-   - .scalars() → list of values (first column)
+   - .scalar() → single value (legacy Query: raises if more than one row)
    - .count() → integer count
+   - .paginate() → Pagination object
+   - iterating over the query (`for u in query:`) also executes it
+
+   (`.scalars()` is not a Query method: it belongs to the `Result` returned by `db.session.execute(select(...))`.)
 
 2. Query Modifying Methods:
    These methods modify the query object and return a new query object. They do not execute the query.
@@ -601,5 +657,5 @@ In this section, we have covered various methods for querying the database using
    - .offset()
    - .distinct()
 
-> SQLAlchemy queries are lazy. The query is not executed until an execution method is called.
+> SQLAlchemy queries are lazy. The query is not executed until an execution method is called. (This is unrelated to "lazy loading" of relationships, which we will see later.)
 

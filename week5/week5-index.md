@@ -27,4 +27,20 @@ By the end of this week, you should be able to:
 - **[Flask SQLAlchemy Basics](5-flask-sqlalchemy-basics.md)**<br>
   Configuring the database, Flask-SQLAlchemy features, creating models, and CRUD operations using ORM
 
-- **[Flask SQLAlchemy Relationships](5-flask-sqlalchemy-relationships.md)**<br>
+- **[Tables and Models](5-table-creation.md)**<br>
+  Defining tables/models, data types, column constraints and composite constraints
+
+- **[Querying the Database](5-flask-sqlalchemy-querying.md)**<br>
+  Query methods, projection, filtering, operators, ordering, pagination, aggregation and raw SQL
+
+- **[Update and Delete](5-flask-sqlalchemy-update-and-delete.md)**<br>
+  Updating/deleting single records, bulk update/delete and `synchronize_session`
+
+- **[Flask SQLAlchemy Relationships – Part 1](5-flask-sqlalchemy-relationship-part-1.md)**<br>
+  One-to-one, one-to-many, many-to-many, `back_populates` vs `backref`, loading strategies and cascades
+
+- **[Flask SQLAlchemy Relationships – Part 2](5-flask-sqlalchemy-relationships-part-2.md)**<br>
+  Quick reference: where the foreign key goes, association tables, one-to-one
+
+- **[Extra: Select vs Query API](5-extra-select-vs-query-api.md)**<br>
+  The modern SQLAlchemy 2.0 `select()` style compared with the legacy `Query` API

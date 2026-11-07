@@ -8,7 +8,7 @@ We may also see the equivalent code in raw SQL for creating tables for few model
 
 To create a table in Flask SQLAlchemy, we need to define a *table* or a *model class* that inherits from `db.Model`. Each attribute of the class represents a column in the table. We can also specify the data type and other constraints for each column.
 
-Here is an example of how to create a simple `User` table defined in both ways:
+Here is an example of how to create a simple `User` table defined in both ways. These are **alternatives** — use only one of them. If both are defined in the same app, SQLAlchemy raises `InvalidRequestError: Table 'users' is already defined for this MetaData instance`, because a table name can be registered only once.
 
 ```python
 from flask import Flask
@@ -17,15 +17,21 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'  # Example database URI
 db = SQLAlchemy(app)
+```
 
-db.Table('users', db.metadata,
+**Option 1: using `db.Table` (a plain table, no Python class)**
+
+```python
+users = db.Table('users',          # Flask-SQLAlchemy attaches it to db.metadata automatically
     db.Column('id', db.Integer, primary_key=True),
     db.Column('username', db.String(80), unique=True, nullable=False),
     db.Column('email', db.String(120), unique=True, nullable=False)
 )
+```
 
-# or using a model class
+**Option 2: using a model class**
 
+```python
 class User(db.Model):
     __tablename__ = 'users'  # Optional: specify the table name
 
@@ -37,7 +43,7 @@ class User(db.Model):
         return f'<User {self.username}>'
 ```
 
-In this example, we have defined a `User` model with three columns: `id`, `username`, and `email`. The table name is explicitly set to 'users'. If we do not specify the `__tablename__`, SQLAlchemy will automatically generate a table name based on the class name (in this case, it would be 'user').
+In this example, we have defined a `User` model with three columns: `id`, `username`, and `email`. The table name is explicitly set to 'users'. If we do not specify the `__tablename__`, Flask-SQLAlchemy will automatically generate a table name by converting the class name from `CamelCase` to `snake_case` (here it would be `user`; a class `OrderItem` would become `order_item`). Note that this is a Flask-SQLAlchemy convenience — in plain SQLAlchemy `__tablename__` is required.
 
 The `id` column is an integer that serves as the primary key. The `username` and `email` columns are strings that must be unique and cannot be null.
 
@@ -50,7 +56,7 @@ with app.app_context():
     db.create_all()
 ```
 
-This will create the `users` table in the database based on the `User` model we defined. The equivalent SQL command for creating this table would be:
+This will create the `users` table in the database based on the `User` model we defined. The (roughly) equivalent SQL command for creating this table would be:
 
 ```sql
 CREATE TABLE users (
@@ -61,7 +67,7 @@ CREATE TABLE users (
 ```
 
 
-Most of the time, we will use the model class approach as it provides more functionality and is easier to work with becuase of its object-oriented nature. The `db.Table` approach is more suitable for defining association tables in many-to-many relationships, where we do not need to define a model class.
+Most of the time, we will use the model class approach as it provides more functionality and is easier to work with because of its object-oriented nature. The `db.Table` approach is more suitable for defining association tables in many-to-many relationships, where we do not need to define a model class.
 
 ## DataTypes and Constraints
 
@@ -85,6 +91,7 @@ When defining columns in a model, we can specify the data type and various const
 - `precision`: Total number of digits.
 - `scale`: Number of digits after the decimal point.
 - Example: `db.Numeric(10, 2)` allows 10 digits in total, with 2 digits after the decimal point.
+- **SQLite caveat:** SQLite uses dynamic typing and does **not** enforce lengths or precision. `db.String(80)` will happily store a 500-character string and `db.Numeric(10, 2)` is not checked (SQLAlchemy also warns that SQLite has no native decimal type). Other databases such as PostgreSQL/MySQL do enforce these limits, so the length still documents our intent and matters if we change databases.
 
 
 
@@ -97,7 +104,8 @@ We can specify additional constraints and options while defining columns to cont
 | `primary_key=True` | Marks a column as the primary key. Uniquely identifies each row. | `id = db.Column(db.Integer, primary_key=True)` |
 | `unique=True` | Prevents duplicate values in a column. | `email = db.Column(db.String(100), unique=True)` |
 | `nullable=False` | Prevents the column from storing NULL values. | `name = db.Column(db.String(50), nullable=False)` |
-| `default=value` | Provides a default value if no value is supplied. | `is_active = db.Column(db.Boolean, default=True)` |
+| `default=value` | Provides a default value (applied by SQLAlchemy in Python) if no value is supplied. | `is_active = db.Column(db.Boolean, default=True)` |
+| `server_default=value` | Provides a default value stored in the table definition itself (`DEFAULT ...` in SQL), so it also applies to raw SQL inserts. | `status = db.Column(db.String(10), server_default='new')` |
 | `onupdate=value` | Automatically sets a new value when the row is updated. | `updated_at = db.Column(db.DateTime, onupdate=datetime.now)` |
 | `index=True` | Creates an index to make searches on the column faster. | `email = db.Column(db.String(100), index=True)` |
 | `autoincrement=True` | Automatically generates the next integer value for a primary key. | `id = db.Column(db.Integer, primary_key=True, autoincrement=True)` |
@@ -106,16 +114,17 @@ We can specify additional constraints and options while defining columns to cont
 - `primary_key=True` generally implies `nullable=False` and uniqueness.
 - `unique=True` is useful for fields like email and username.
 - `nullable=False` means a value must be provided; it does not mean an empty string is forbidden.
-- `default=True` is applied when a value is not provided during insertion.
+- `default=True` is applied when a value is not provided during insertion. This default is applied by SQLAlchemy (Python side) and does **not** appear in `CREATE TABLE`; use `server_default` for a database-level default.
+- For time-based defaults pass the **function**, not its result: `default=datetime.now` (called for every new row) vs `default=datetime.now()` (evaluated once when the class is defined, so every row gets the same timestamp).
 - `onupdate=datetime.now` updates the timestamp when an update occurs through SQLAlchemy.
 - `index=True` improves lookup performance but can add overhead to insert and update operations.
-- Integer primary keys generally auto-increment by default in SQLite, so explicitly writing `autoincrement=True` is often unnecessary.
+- Integer primary keys generally auto-increment by default in SQLite, so explicitly writing `autoincrement=True` is often unnecessary. (In SQLite, an `INTEGER PRIMARY KEY` column is an alias of the internal `rowid`; a new row gets *largest current id + 1*, so an id can be reused if the row with the largest id is deleted. The stricter SQLite `AUTOINCREMENT` keyword, which never reuses ids, is only emitted if we set `__table_args__ = {'sqlite_autoincrement': True}`.)
 
 ### Important Questions to Understand Column Constraints
 
 **Q1. Does `primary_key=True` automatically make a column unique and non-nullable?**
 
-Yes. A primary key uniquely identifies each row and cannot contain NULL values.
+Yes. A primary key uniquely identifies each row and cannot contain NULL values (SQLAlchemy also emits `NOT NULL` for primary key columns).
 
 **Q2. When should we use `unique=True`?**
 

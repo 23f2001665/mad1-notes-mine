@@ -200,8 +200,8 @@ class Book(db.Model):
 
 class Borrow(db.Model):
     borrow_id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.String(4), db.ForeignKey('student.student_id'))
-    book_id = db.Column(db.String(4), db.ForeignKey('book.book_id'))
+    student_id = db.Column(db.Integer, db.ForeignKey('student.student_id'))
+    book_id = db.Column(db.Integer, db.ForeignKey('book.book_id'))
     borrow_date = db.Column(db.String(20))
 
 
@@ -221,8 +221,8 @@ book_parser.add_argument("edition")
 book_parser.add_argument("publisher")
 
 borrow_parser = reqparse.RequestParser()
-borrow_parser.add_argument("student_id", required=True)
-borrow_parser.add_argument("book_id", required=True)
+borrow_parser.add_argument("student_id", type=int, required=True)
+borrow_parser.add_argument("book_id", type=int, required=True)
 borrow_parser.add_argument("borrow_date", required=True)
 
 # ---------------------- FIELDS ----------------------
@@ -243,8 +243,8 @@ book_fields = {
 
 borrow_fields = {
     "borrow_id": fields.Integer,
-    "student_id": fields.String,
-    "book_id": fields.String,
+    "student_id": fields.Integer,
+    "book_id": fields.Integer,
     "borrow_date": fields.String
 }
 

@@ -42,13 +42,20 @@ class ArticleAuthors(db.Model):
 ```
 
 - Use `db.relationship()` for convenience, especially for bidirectional access.
-- For many-to-many, use an association table with two foreign keys and `secondary` in relationships. secondary=user_articles → tells SQLAlchemy it's `many-to-many`
+- For many-to-many, use an association table with two foreign keys and `secondary` in relationships. `secondary="article_authors"` → tells SQLAlchemy it's `many-to-many` (the string is the association **table name**)
+- Here the association table is mapped as a model (`ArticleAuthors`), which is fine. If the association needs extra columns that we want to read/write (e.g. `role`, `added_on`), use the *Association Object* pattern (relationships to `ArticleAuthors` itself) instead of `secondary`.
 - back_populates connects both sides
 
 ### one-to-one
-add `unique=True` constraint on the foreign key column.
+add `unique=True` constraint on the foreign key column of the child table, and `uselist=False` on the parent's relationship so it returns a single object instead of a list.
 ```py
-user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Article
+class Profile(db.Model):
+    profile_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"), unique=True)  # Foreign key in Profile (child)
+    user = db.relationship("User", back_populates="profile")
+
+# in User:
+#   profile = db.relationship("Profile", uselist=False, back_populates="user")
 ```
 ![](../static/one-many-PYQ.png)
 
