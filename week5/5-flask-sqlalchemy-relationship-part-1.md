@@ -544,7 +544,8 @@ In this example, we have specified `ondelete='CASCADE'` and `onupdate='CASCADE'`
 
 `ondelete=...` produces the SQL clause `ON DELETE <action>` and `onupdate=...` produces `ON UPDATE <action>`.
 
-> **NOTE:** By default, `sqlite3` does not enforce foreign key constraints, so you need to enable it explicitly by executing `PRAGMA foreign_keys = ON;` after establishing a connection to the database. In other databases like PostgreSQL and MySQL, foreign key constraints are enforced by default. You can enable foreign key constraints in SQLite by adding the following code to your application:
+::: warning NOTE
+By default, `sqlite3` does not enforce foreign key constraints, so you need to enable it explicitly by executing `PRAGMA foreign_keys = ON;` after establishing a connection to the database. In other databases like PostgreSQL and MySQL, foreign key constraints are enforced by default. You can enable foreign key constraints in SQLite by adding the following code to your application:
 
 ```python
 from sqlalchemy import event
@@ -557,6 +558,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 ```
 
 Without enabling foreign key constraints, the cascade options specified in the foreign key definition will not be enforced, and related records will not be automatically deleted or updated when a parent record is deleted or updated. This leads to potential data integrity issues, as orphaned records may remain in the database without the expected cascading behavior.
+:::
 
 #### `ondelete='CASCADE'` and the ORM: `passive_deletes`
 

@@ -44,3 +44,6 @@ By the end of this week, you should be able to:
 
 - **[Extra: Select vs Query API](5-extra-select-vs-query-api.md)**<br>
   The modern SQLAlchemy 2.0 `select()` style compared with the legacy `Query` API
+
+- **[Extra: Base SQLAlchemy (without Flask)](5-extra-base-sqlalchemy.md)**<br>
+  Engine, declarative base and session in plain SQLAlchemy, and how Flask-SQLAlchemy wraps them

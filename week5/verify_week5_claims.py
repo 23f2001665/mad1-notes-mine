@@ -802,6 +802,153 @@ def run_note_blocks(md_file, skip_if_contains=()):
 
 run_note_blocks("5-flask-sqlalchemy-querying.md", skip_if_contains=("any_(subq_any)",))  # block 21: only the ANY/ALL part is removed
 
+
+# =========================================================================== #
+# 8. 5-extra-select-vs-query-api.md: run every block and compare key values
+# =========================================================================== #
+def note_blocks(md_file):
+    import os
+    import re
+    src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), md_file)).read()
+    return re.findall(r"```python(?: \[[^\]]+\])?\n(.*?)```", src, re.S)
+
+
+F = "5-extra-select-vs-query-api.md"
+print("=" * 78 + f"\n{F}\n" + "=" * 78)
+app8 = Flask(__name__)
+app8.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://"
+db8 = SQLAlchemy(app8)
+ns8 = {"db": db8, "__name__": "__main__"}
+values8 = {}
+with app8.app_context(), warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    for i, block in enumerate(note_blocks(F)):
+        err = raises(lambda: exec(block, ns8))
+        label = block.strip().splitlines()[0][:55]
+        check(F, f"block {i} runs: {label}", lambda err=err: (err is None, err or "ran without error"))
+        for name in ("rows", "names", "count", "avg_budget", "top3", "ny_users", "rich_users", "first_rich"):
+            if name in ns8:
+                values8.setdefault(name, []).append(repr(ns8[name]))
+    left = db8.session.scalars(db8.select(ns8["User"])).all()
+
+expected8 = {
+    "ny_users": "[<User Alice>, <User David>]",
+    "rich_users": "[<User Bob>, <User David>]",
+    "first_rich": "<User Bob>",
+    "top3": "[<User Bob>, <User David>, <User Alice>]",
+    "names": "['Alice', 'Bob', 'Charlie', 'David', 'Eve']",
+    "count": "5",
+    "avg_budget": "1080.0",
+}
+for name, exp in expected8.items():
+    got = set(values8.get(name, []))
+    check(F, f"both API versions give {name} = {exp}", lambda got=got, exp=exp: (got == {exp}, str(sorted(got))))
+check(F, "group_by/having rows (both APIs) = [('Los Angeles', 2400.0), ('New York', 2200.0)]",
+      lambda: ("[('Los Angeles', 2400.0), ('New York', 2200.0)]" in values8["rows"], values8["rows"][-1]))
+check(F, "bulk update Chicago -> 850 then delete budget < 900 removes Charlie",
+      lambda: (str(left) == "[<User Alice>, <User Bob>, <User David>, <User Eve>]", str(left)))
+
+
+def _query_scalar_vs_one_or_none():
+    app, db = new_app()
+
+    class T(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+    with app.app_context():
+        db.create_all()
+        none = db.session.query(T.id).scalar()
+        db.session.add_all([T(), T()]); db.session.commit()
+        err = raises(lambda: db.session.query(T.id).scalar())
+        ok_res = db.session.execute(select(T.id)).scalar()
+    return none is None and (err or "").startswith("MultipleResultsFound") and ok_res == 1, \
+        f"Query.scalar(): 0 rows -> {none}, 2 rows -> {err[:22]}; Result.scalar() 2 rows -> {ok_res}"
+
+
+check(F, "legacy Query.scalar() acts like scalar_one_or_none(); Result.scalar() does not raise", _query_scalar_vs_one_or_none)
+
+# =========================================================================== #
+# 9. 5-extra-base-sqlalchemy.md: run the blocks as a reader would
+# =========================================================================== #
+F = "5-extra-base-sqlalchemy.md"
+print("=" * 78 + f"\n{F}\n" + "=" * 78)
+
+
+def _run_base_note():
+    import os
+    import tempfile
+    blocks = note_blocks(F)
+    out = {}
+    cwd = os.getcwd()
+    tmp = tempfile.mkdtemp()
+    os.chdir(tmp)                                   # relative sqlite paths land here
+    try:
+        from contextlib import redirect_stdout
+        import io
+        # classic-style tab + engine + create_all + CRUD + begin()
+        ns = {"__name__": "__main__"}
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            for idx in (0, 1, 3, 4, 5):
+                exec(blocks[idx].replace("echo=True", "echo=False"), ns)
+        out["crud_output"] = buf.getvalue().split("\n")[:4]
+        out["detached"] = raises(lambda: exec(blocks[6], ns))
+        out["plain_file"] = os.path.exists(os.path.join(tmp, "example.db"))
+        # typed-style tab
+        ns2 = {"__name__": "__main__"}
+        exec(blocks[0].replace("echo=True", "echo=False"), ns2)
+        exec(blocks[2], ns2)
+        exec("Base.metadata.create_all(engine)", ns2)
+        out["typed_nullable"] = {c["name"]: c["nullable"] for c in inspect(ns2["engine"]).get_columns("articles")}
+        # Flask-SQLAlchemy with model_class=Base
+        ns3 = {"__name__": "__main__"}
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            exec(blocks[7], ns3)
+        out["flask_output"] = buf.getvalue().strip()
+        out["flask_tablename"] = ns3["Book"].__tablename__
+        out["instance_file"] = os.path.exists(os.path.join(tmp, "instance", "example.db"))
+        out["db_model_base"] = ns3["db"].Model.metadata is ns3["Base"].metadata
+    finally:
+        os.chdir(cwd)
+    return out
+
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    base = _run_base_note()
+
+check(F, "CRUD block prints <User alice> / both articles / <User alice> / [<Article Flask Basics>]",
+      lambda: (base["crud_output"] == ["<User alice>", "[<Article Flask Basics>, <Article SQLAlchemy ORM>]", "<User alice>", "[<Article Flask Basics>]"],
+               str(base["crud_output"])))
+check(F, "lazy load after the with-block closes the session -> DetachedInstanceError",
+      lambda: ((base["detached"] or "").startswith("DetachedInstanceError"), (base["detached"] or "no error")[:90]))
+check(F, "plain SQLAlchemy: relative sqlite path is relative to the working directory",
+      lambda: (base["plain_file"], f"./example.db created = {base['plain_file']}"))
+check(F, "Flask-SQLAlchemy: relative sqlite path goes to instance/",
+      lambda: (base["instance_file"], f"instance/example.db created = {base['instance_file']}"))
+check(F, "typed style: Mapped[str] -> NOT NULL, Mapped[Optional[int]] -> NULL",
+      lambda: (base["typed_nullable"] == {"id": False, "title": False, "user_id": True}, str(base["typed_nullable"])))
+check(F, "SQLAlchemy(model_class=Base): db.Model uses Base's metadata, tablename generated, prints 'Python 101'",
+      lambda: (base["db_model_base"] and base["flask_tablename"] == "book" and base["flask_output"] == "Python 101",
+               f"db.Model.metadata is Base.metadata={base['db_model_base']}, tablename={base['flask_tablename']!r}, output={base['flask_output']!r}"))
+
+
+def _db_reexports():
+    import sqlalchemy as sa
+    from sqlalchemy import orm
+    app, db = new_app()
+    same = {n: getattr(db, n) is getattr(sa, n) for n in ("Column", "Integer", "String", "ForeignKey", "select")}
+    rel = db.relationship("X")
+    same["relationship_wraps_orm"] = type(rel) is type(orm.relationship("X"))
+    with app.app_context():
+        same["metadata"] = db.metadata is db.Model.metadata
+        same["engine"] = type(db.engine).__name__ == "Engine"
+        same["session"] = type(db.session).__name__ == "scoped_session"
+    return all(same.values()), str(same)
+
+
+check(F, "db.Column/Integer/String/ForeignKey/select are SQLAlchemy's own; db.relationship wraps it; db.session is scoped", _db_reexports)
+
 # --------------------------------------------------------------------------- #
 wrong = [f for ok, f in RESULTS if not ok]
 print("=" * 78)

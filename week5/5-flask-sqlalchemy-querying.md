@@ -70,6 +70,7 @@ users.budget AS users_budget
 FROM users
 ```
 
+::: info `Model.query` vs `db.session.query(Model)`
 The `query` object provided by Model itself is just a convenient shortcut to `db.session.query(Model)`. Both of them will give you the same query object that you can use to perform various operations on the database.
 
 ```python
@@ -79,6 +80,7 @@ query2 = User.query
 print(type(query1))  # <class 'flask_sqlalchemy.query.Query'>
 print(type(query2))  # <class 'flask_sqlalchemy.query.Query'>
 ```
+:::
 
 
 In this section, we will be using `db.session.query(User)` to demonstrate the querying capabilities of Flask-SQLAlchemy. However, you can also use `User.query` if you prefer a more concise syntax.
@@ -500,6 +502,7 @@ users_with_offset = db.session.query(User).order_by(desc(User.budget)).offset(2)
 print(users_with_offset)
 ```
 
+::: info
 While `.limit` and `.offset` can be used for simple pagination, Flask-SQLAlchemy also provides a more convenient method called `.paginate`, which we will cover in the next section. The `.paginate` method handles both limiting and offsetting the results based on the page number and items per page.
 
 example of using `.limit` and `.offset` for pagination:
@@ -511,6 +514,8 @@ items_per_page = 2
 users_page_2 = db.session.query(User).order_by(User.id).limit(items_per_page).offset((page_number - 1) * items_per_page).all()
 print(users_page_2)
 ```
+
+:::
 
 ## Pagination
 
