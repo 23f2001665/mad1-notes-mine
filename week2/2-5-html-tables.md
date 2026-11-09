@@ -6,29 +6,29 @@ HTML tables are used to display data in a structured format using rows and colum
 - `<tr>`: Defines a table row.
 - `<th>`: Defines a table header cell.
 - `<td>`: Defines a table data cell.
-- `<thead>`: Groups the header content in a table know as **Table Header Section**.
-- `<tbody>`: Groups the body content in a table know as **Table Body Section**.
-- `<tfoot>`: Groups the footer content in a table know as **Table Footer Section**.
+- `<thead>`: Groups the header content in a table known as **Table Header Section**.
+- `<tbody>`: Groups the body content in a table known as **Table Body Section**.
+- `<tfoot>`: Groups the footer content in a table known as **Table Footer Section**.
 - `<caption>`: Adds a caption to the table.
 - `colspan` and `rowspan` attributes: Used to span cells across multiple columns or rows.
 
-:::warning Deprecated Attribute
-**`border` attribute** is deprecated in HTML5, and it is recommended to use CSS for styling tables instead. We can use following CSS properties to add borders to tables:
-
-```css
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse; /* Optional: to collapse borders */
-}
-```
-
-:::
+> [!WARNING]
+> **Deprecated Attribute**
+>
+> **`border` attribute** is deprecated (obsolete) in HTML5, and it is recommended to use CSS for styling tables instead. We can use following CSS properties to add borders to tables:
+>
+> ```css
+> table, th, td {
+>     border: 1px solid black;
+>     border-collapse: collapse; /* Optional: to collapse borders */
+> }
+> ```
 
 Let's look at each of these components in detail one by one.
 
 ## Table tag `<table>`
 
-The `<table>` tag is used to create a table in HTML. Table elements are defined within the opening `<table>` and closing `</table>` tags.Table have rows and columns to organize data.
+The `<table>` tag is used to create a table in HTML. Table elements are defined within the opening `<table>` and closing `</table>` tags. Tables have rows and columns to organize data.
 
 The `<table>` element itself has very few attributes in modern HTML. Most table layout and spacing is handled using CSS instead of HTML attributes.
 
@@ -42,12 +42,11 @@ The `<table>` element itself has very few attributes in modern HTML. Most table 
 </table>
 ```
 
-:::info Note
-
-- We can customize the table further using CSS for styling.
-- We can also give id to the table for further reference in CSS or JavaScript.
-
-:::
+> [!NOTE]
+> **Note**
+>
+> - We can customize the table further using CSS for styling.
+> - We can also give id to the table for further reference in CSS or JavaScript.
 
 ## Table Rows `<tr>`
 
@@ -95,13 +94,12 @@ The `<th>` tag is used to define a header cell in an HTML table, while the `<td>
 
 In this example, "Header 1" and "Header 2" are header cells, while "Data 1" and "Data 2" are standard data cells.
 
-:::info Attributes of `<th>` and `<td>`
-
-- `colspan`: Specifies the number of columns a cell should span.
-- `rowspan`: Specifies the number of rows a cell should span.
-- `scope` (for `<th>` only): Specifies whether a header cell is a header for a row, column, or group of rows or columns. Values can be "row", "col", "rowgroup", or "colgroup".
-
-:::
+> [!NOTE]
+> **Attributes of `<th>` and `<td>`**
+>
+> - `colspan`: Specifies the number of columns a cell should span.
+> - `rowspan`: Specifies the number of rows a cell should span.
+> - `scope` (for `<th>` only): Specifies whether a header cell is a header for a row, column, or group of rows or columns. Values can be "row", "col", "rowgroup", or "colgroup".
 
 ## Table Sections `<thead>`, `<tbody>`, and `<tfoot>`
 
@@ -142,16 +140,15 @@ The `<thead>`, `<tbody>`, and `<tfoot>` tags are used to group different section
 
 In this example, the table is divided into three sections: the header (`<thead>`), the body (`<tbody>`), and the footer (`<tfoot>`).
 
-:::info Note
-
-- Using these sectioning tags can improve the accessibility of the table and make it easier to style different parts of the table using CSS.
-- They don’t have unique attributes
-- But they can still take global attributes (id, class, etc.)
-- These tags are optional but recommended for better structure.
-- These tags don't have any visual effect on the table by default.
-- **Though not commonly used, but `<thead>` can contain multiple `<tr>` elements to create multi-row headers.**
-
-:::
+> [!NOTE]
+> **Note**
+>
+> - Using these sectioning tags can improve the accessibility of the table and make it easier to style different parts of the table using CSS.
+> - They don’t have unique attributes
+> - But they can still take global attributes (id, class, etc.)
+> - These tags are optional but recommended for better structure. If we leave out `<tbody>`, the browser automatically inserts one around the rows, so a CSS selector like `table > tr` never matches (use `table tr` or `tbody > tr`).
+> - These tags don't have any visual effect on the table by default.
+> - **Though not commonly used, but `<thead>` can contain multiple `<tr>` elements to create multi-row headers.**
 
 ## Complete Example
 
@@ -222,15 +219,15 @@ In this example:
 - The `<tbody>` section contains the data rows with `<td>` elements.
 - The `<tfoot>` section contains the footer row, which can be used for summary information.
 
-:::info Note
+> [!NOTE]
+> **Note**
+>
+> - We can customize the appearance of tables further using CSS for styling, such as changing colors, fonts, and spacing.
+> - It is a good practice to use `<thead>`, `<tbody>`, and `<tfoot>` for better organization and accessibility of tables.
+> - We should use CSS for styling tables instead of using deprecated attributes like `border`, `bgcolor`, `background`, `align`, `cellpadding`, and `cellspacing`.
 
-- We can customize the appearance of tables further using CSS for styling, such as changing colors, fonts, and spacing.
-- It is a good practice to use `<thead>`, `<tbody>`, and `<tfoot>` for better organization and accessibility of tables.
-- We should use CSS for styling tables instead of using deprecated attributes like `border`, `bgcolor`, `background`, `align`, `cellpadding`, and `cellspacing`.
-
-:::
-
-:::details **Try it yourself**
+<details>
+<summary><b>Try it yourself</b></summary>
 
 You can create your own HTML table by copying the example above into a text editor and saving it with a `.html` extension. Open the file in a web browser to see how it looks!
 
@@ -278,7 +275,7 @@ You can create your own HTML table by copying the example above into a text edit
 </html>
 ```
 
-:::
+</details>
 
 ## Summary
 
@@ -286,10 +283,8 @@ In this section, we explored HTML tables, which are used to display data in a st
 
 *We will continue to exploring more HTML elements and their usage in further sections. Specifically, we will look into forms and input elements after flask-basics section.*
 
-:::info Additional Resources:
+### Additional Resources
 
 - [MDN Web Docs - HTML Tables](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table)
 - [W3Schools - HTML Tables](https://www.w3schools.com/html/html_tables.asp)
 - [HTML Living Standard - Tables](https://html.spec.whatwg.org/multipage/tables.html)
-
-:::

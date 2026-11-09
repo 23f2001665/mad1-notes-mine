@@ -23,7 +23,7 @@ HTML provides several elements for formatting text. Here are some of the most co
 
 ## Example
 
-``` html[example 1]
+```html
 <p>This is <b>bold</b> text.</p>
 <p>This is <i>italic</i> text.</p>
 <p>This is <u>underlined</u> text.</p>
@@ -35,25 +35,16 @@ HTML provides several elements for formatting text. Here are some of the most co
 <p>This is <ins>inserted</ins> text.</p>
 ```
 
-Output:
+Output (as rendered by a browser):
 
-This is <b>bold</b> text.<br>
-This is <i>italic</i> text.<br>
-This is <u>underlined</u> text.<br>
-This is <strong>important</strong> text.<br>
-This is <em>emphasized</em> text.<br>
-This is <mark>highlighted</mark> text.<br>
-This is <small>smaller</small> text.<br>
-This is <del>deleted</del> text.<br>
-This is <ins>inserted</ins> text.<br>
+![text formatting output](../static/html-text-formatting.png)
 
-:::info INFO
-
-- The `<b>` and `<i>` tags are used for stylistic purposes, while `<strong>` and `<em>` convey semantic meaning.
-- Refer back to the section on Semantic HTML for more details on the importance of using semantic elements. [Semantic HTML](2-html-basics.md#semantic-vs-non-semantic-elements)
-- Rule of thumb: Use semantic elements for meaning, and CSS for styling.
-
-:::
+> [!NOTE]
+> **INFO**
+>
+> - The `<b>` and `<i>` tags are used for stylistic purposes, while `<strong>` and `<em>` convey semantic meaning.
+> - Refer back to the section on Semantic HTML for more details on the importance of using semantic elements. [Semantic HTML](2-3-html-basics.md#semantic-vs-non-semantic-elements)
+> - Rule of thumb: Use semantic elements for meaning, and CSS for styling.
 
 ## Lists
 
@@ -63,7 +54,7 @@ HTML provides three types of lists: ordered lists, unordered lists, and descript
 
 An ordered list is used to create a list of items that have a specific order. It is created using the `<ol>` tag, with each item in the list represented by an `<li>` tag.
 
-``` html[example 1]
+```html
 <ol>
   <li>First item</li>
   <li>Second item</li>
@@ -121,16 +112,17 @@ CSS
     Cascading Style Sheets
 ```
 
-:::details Details
+<details>
+<summary>Details</summary>
 
 - Description lists are particularly useful for glossaries or terms and definitions.
 - We can nest lists within other lists for more complex structures.
 - We can give different ordered lists different styles using the `type` attribute (e.g., `type="A"` for uppercase letters, `type="a"` for lowercase letters, `type="I"` for uppercase Roman numerals, and `type="i"` for lowercase Roman numerals).
 - We can also change the starting number of an ordered list using the `start` attribute (e.g., `<ol start="5">` will start the list at 5).
-- Unordered lists also have different bullet styles using the `type` attribute (e.g., `type="circle"`, `type="square"`).
-- **Note:** The `type` attribute for lists is deprecated in HTML5; CSS should be used for styling instead.
+- Unordered lists used to have different bullet styles using the `type` attribute (e.g., `type="circle"`, `type="square"`).
+- **Note:** `type` on `<ul>` is obsolete in HTML5, so use the CSS property `list-style-type` for bullet styles. `type` on `<ol>` is still valid (it changes the numbering style), but CSS can be used there as well.
 
-:::
+</details>
 
 ## Links
 
@@ -148,13 +140,10 @@ Visit Example.com
 
 When clicked, it will take the user to "https://www.example.com".
 
-:::info
+> [!NOTE]
+> - use the `id` attribute to uniquely identify the link element in the document.
+> - use of `name` attribute is deprecated in HTML5, and `id` should be used instead for identifying elements.
 
-- use the `id` attribute to uniquely identify the link element in the document.
-- use of `name` attribute is deprecated in HTML5, and `id` should be used instead for identifying elements.
-
-:::
-  
 Linking can be done to various types of resources, including webpages, email addresses, and files. The location of these resources can be external (on a different website) or internal (within the same website). Internal links can also point to specific sections within the same page using the `id` attribute. The internal link would look like this:
 
 ```html
@@ -165,7 +154,8 @@ Linking can be done to various types of resources, including webpages, email add
 
 Here, clicking on "Go to Section 1" will take the user to the section of the page with the `id` of "section1".
 
-:::details
+<details>
+<summary>More about links</summary>
 
 - The href attribute specifies the destination, whereas the id attribute identifies an element in the document.
 - The `id` attribute can be used to create a bookmark within the page.
@@ -174,7 +164,7 @@ Here, clicking on "Go to Section 1" will take the user to the section of the pag
 - We can create email links using the `mailto:` protocol in the `href` attribute (e.g., `<a href="mailto:someone@example.com">Send Email</a>`).
 - We can create telephone links using the `tel:` protocol in the `href` attribute (e.g., `<a href="tel:+1234567890">Call Us</a>`).
 
-:::
+</details>
 
 ## Images
 
@@ -186,19 +176,16 @@ Images are added to a webpage using the `<img>` tag. The `src` attribute specifi
 
 This will display the image located at "image.jpg" with the specified dimensions. If the image cannot be displayed, the text "Description of the image" will be shown instead.
 
-:::info
-
-- The `<img>` tag is a void element and does not have a closing tag.
-- **By default, html will search for the image in the same directory. We can also provide a relative or absolute path to the image.**
-- Better practice is to use CSS for styling images rather than using the `height` and `width` attributes directly in the HTML.
-- Video and audio elements can also be added using the `<video>` and `<audio>` tags, respectively.
-- Use the `id` attribute to uniquely identify the image element in the document.
-
-:::
+> [!NOTE]
+> - The `<img>` tag is a void element and does not have a closing tag.
+> - **By default, html will search for the image relative to the location of the HTML file (the same directory if only a file name is given). We can also provide a relative or absolute path to the image.**
+> - The `height` and `width` attributes (numbers, in pixels) tell the browser the size of the image before it has loaded, so it can reserve the space and the page does not jump around (layout shift). Use CSS for styling and responsive sizing (e.g. `max-width: 100%`).
+> - Video and audio elements can also be added using the `<video>` and `<audio>` tags, respectively.
+> - Use the `id` attribute to uniquely identify the image element in the document.
 
 ## Complete Example
 
-```html[complete example]
+```html
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -277,15 +264,15 @@ This will be rendered as:
 
 ![Complete Example Output](../static/html-elements.png)
 
-:::info Notes
+> [!NOTE]
+> **Notes**
+>
+> - `id="sampleImage"` is used to apply CSS (`#sampleImage { ... }`) to the `<img>` element.
+> - `target="_blank"` opens the link in a new tab. Modern browsers already imply `rel="noopener"` for such links, but writing `rel="noopener noreferrer"` is still good practice (it also keeps old browsers safe, and `noreferrer` hides the referring page).
+> - `<img>` is a void element (no closing tag).
 
-- `id="sampleImage"` is used to apply CSS (`#sampleImage { ... }`) to the `<img>` element.
-- `target="_blank"` opens the link in a new tab; `rel="noopener noreferrer"` is recommended for security.
-- `<img>` is a void element (no closing tag).
-
-:::
-
-:::details **Try it Yourself!**
+<details>
+<summary><b>Try it Yourself!</b></summary>
 
 You can copy the following code into an HTML file and open it in your web browser to see how it works. Feel free to modify the content and experiment with different HTML elements!
 
@@ -331,7 +318,7 @@ You can copy the following code into an HTML file and open it in your web browse
 </html>
 ```
 
-:::
+</details>
 
 ## Summary
 

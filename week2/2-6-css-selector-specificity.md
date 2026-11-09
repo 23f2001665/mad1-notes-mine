@@ -1,9 +1,9 @@
 
 ## Cascading Style Sheets
 
-::: warning ⚠️ This section is reference-heavy. Focus primarily on selectors, specificity, and commonly used pseudo-classes for exams.
-a short CSS Video tutorial!! https://youtu.be/l1mER1bV0N0?si=JzvInFpRWEqTltJ1
-:::
+> [!WARNING]
+> **⚠️ This section is reference-heavy.** Focus primarily on selectors, specificity, and commonly used pseudo-classes for exams.
+> a short CSS Video tutorial!! https://youtu.be/l1mER1bV0N0?si=JzvInFpRWEqTltJ1
 
 - CSS describes how HTML elements are to be displayed on screen. It saves a lot of work because a single CSS file can control the layout and appearance of multiple web pages at once.
 
@@ -15,8 +15,17 @@ AND no higher-priority rule overrides it
 THEN apply the styles inside { }
 ```
 
-:::tabs
-==type selector
+### Type selector
+selects all HTML elements with that tag name.
+
+```css
+/* every <p> element on the page */
+p {
+  color: darkgreen;
+  line-height: 1.5;
+}
+```
+A type selector can be combined with a pseudo-class:
 ```css
 /* anchor tag (+ pseudo class HOVER) on mouse hover will be underline with Inter sans-serif font */
 a:hover { 
@@ -24,12 +33,13 @@ a:hover {
   font-family: Inter, sans-serif;
 }
 ```
-==.class selector
+
+### .class selector
 selects HTML elements with a specific `class` attribute.
 - Use period (.) + class name
 
 ```css
-/* reusable <class="centered"> will make it centered align on page*/
+/* reusable class="centered" will make the text center aligned */
 .centered{
     text-align: center;
     }
@@ -38,7 +48,8 @@ selects HTML elements with a specific `class` attribute.
     font-size: 1.25rem;
     }
 ```
-==ID selector
+
+### ID selector
 The id of an element is unique within a page, so the id selector is used to select 1 unique HTML element.
 - Use hash (#) + id of the element.
 ```css
@@ -50,7 +61,8 @@ The id of an element is unique within a page, so the id selector is used to sele
    30px → top & bottom
    20px → left & right */
 ```
-==attribute selector
+
+### Attribute selector
 select elements with a specific attribute
 ```css
 a[target] {
@@ -85,20 +97,22 @@ div[class*="post"] {
 
 ```css
 [class|="en"] {
-} /* lang "en", "en-US", ❌"english" */
+} /* class="en", "en-US", ❌"english" */
 ```
 `[attribute^="value"]`: whose value **starts with** a specific value. (no hyphen rule)
 
 ```css
 [class^="en"] {
-} /* lang "en", "en-US", "english" */
+} /* class="en", "en-US", "english" */
 ```
 `[attribute$="value"]`: whose value **ends with** a specific value.
 ```css
 [class$="test"] {
 }
 ```
-:::
+
+> [!NOTE]
+> `~=`, `*=`, `|=`, `^=` and `$=` compare against the **whole attribute string**, not against each class separately: `[class^="en"]` does not match `class="foo en"` (the string starts with "foo"). To pick one class out of many, use the class selector `.en` or `[class~="en"]`.
 
 
 ## Universal selector
@@ -145,7 +159,7 @@ may be used if that HTML page has a unique style, separate or in addition to the
 <head>
   <link rel="stylesheet" href="external-style.css"> <!-- has p { color: red; } -->
 
-  <style> /* inline css */
+  <style> /* internal css */
   p {
     color: blue;
   }
@@ -157,56 +171,112 @@ may be used if that HTML page has a unique style, separate or in addition to the
   </style>  
 </head>
 ```
-- Both have same selector `p` but internal style is defined AFTER the link of `external` css, so inline wins🏆 `BLUE`
+- Both have the same selector `p` (same specificity), so the rule that comes **later** wins. The internal `<style>` is defined AFTER the `<link>` of the `external` css, so internal wins🏆 `BLUE`. (If the `<style>` were placed before the `<link>`, the external rule would come last and the paragraph would be red.)
 
 #### 3. Inline CSS `<tag style=";"></tag>`
 May be used to apply unique style for a single element
 ```html
-<td style="border: 1px solid black;">Statistics for Data Science I</td>
+<table>
+  <tr>
+    <td style="border: 1px solid black;">Statistics for Data Science I</td>
+  </tr>
+</table>
 
 <p style="color: green;">p tag with inline css</p>
 ```
-- `inline` style overrides `internal & external` stylesheets in the `head` section, so paragraph tag will now be 🏆`GREEN`❌`BLUE`
+- `inline` style overrides `internal & external` stylesheets in the `head` section (unless their rule uses `!important`), so paragraph tag will now be 🏆`GREEN`❌`BLUE`
 
 ## CSS specificity
-::: warning From strongest to weakest: `!important > inline > ID > class / attribute > element`
-*refers to `(pseudo)` classes & elements as well*
 
-1. If selectors have the same specificity, the rule defined later takes priority.
-2. If specificity is different, the more specific selector wins.
-3. `!important` has HIGHEST priority; **overrides ALL styling rules** for that specific property on that element!
+> [!WARNING]
+> **From strongest to weakest:** `!important > inline > ID > class / attribute / pseudo-class > element / pseudo-element`
+>
+> *refers to `(pseudo)` classes & elements as well*
+>
+> 1. If selectors have the same specificity, the rule defined later takes priority.
+> 2. If specificity is different, the more specific selector wins.
+> 3. `!important` beats every normal declaration for that property on that element. If two competing declarations are both `!important`, the normal rules (specificity, then order) decide between them.
 
-:::
+Specificity is compared as three separate counters, from left to right: **(IDs, classes / attributes / pseudo-classes, elements / pseudo-elements)**. It is not one decimal number: a single `#id` beats any number of classes, and a single class beats any number of element names. Pseudo-classes (e.g. `:hover`) count at the same level as classes. The universal selector `*` and the combinators (space, `>`, `+`, `~`) add nothing.
 
----
+#### Case 1: both selectors are classes (same specificity)
 
-<CSS-specificity />
+👉 The rule written **later in the CSS** wins.
 
----
+```css
+.a { color: red; }
+.b { color: blue; }
+```
 
-::: details Explanation of Each Case
+```html
+<p class="a b">Blue text</p>
+```
 
-**Case 1:**  Both selectors are classes (same specificity).<br>
-👉 The rule written **later in the CSS** wins.<br>
+#### Case 2: ID selectors have higher specificity than class selectors
 
-**Case 2:** ID selectors have higher specificity than class selectors.<br>
-👉 ID rule overrides class rule.<br>
+👉 ID rule overrides class rule (even though the class rule comes later).
 
+```css
+#t { color: red; }
+.c { color: blue; }
+```
 
-**Case 3:** Inline styles have higher priority than both ID and class selectors.<br>
-👉 Inline style wins.<br>
+```html
+<p id="t" class="c">Red text</p>
+```
 
-**Case 4:** The `!important` declaration overrides inline, ID, and class rules.<br>
-👉 `!important` wins for that property.<br>
+#### Case 3: inline styles have higher priority than both ID and class selectors
 
-**Case 5: Multiple `!important` rules**  
-When both rules use `!important`, normal specificity rules apply.<br> 
+👉 Inline style wins.
+
+```css
+#t { color: red; }
+```
+
+```html
+<p id="t" style="color: blue;">Blue text</p>
+```
+
+#### Case 4: the `!important` declaration overrides inline, ID, and class rules
+
+👉 `!important` wins for that property.
+
+```css
+.c { color: blue !important; }
+#t { color: red; }
+```
+
+```html
+<p id="t" class="c" style="color: green;">Blue text</p>
+```
+
+#### Case 5: multiple `!important` rules
+
+When both rules use `!important`, normal specificity rules apply.
+
+```css
+.c { color: blue !important; }
+#t { color: red !important; }
+```
+
+```html
+<p id="t" class="c">Red text</p>
+```
+
 If specificity is equal, the rule written later in the CSS wins.
-:::
+
+```css
+.a { color: blue !important; }
+.b { color: red !important; }
+```
+
+```html
+<p class="a b">Red text</p>
+```
 
 
 ### Margins, height, width, padding
-1. **Margin**
+1. **Margin** is the space *outside* the border (between the element and its neighbours)
 2. Padding is used to generate space around an element's content (inside borders).
 3. **height**
 4. **width**
@@ -220,7 +290,7 @@ If specificity is equal, the rule written later in the CSS wins.
 div {
     height: 100px;
     width: 50%;
-    max-width: 500px;/* EQUIVALENT TO width: max(50%, 500px); */
+    max-width: 500px;/* EQUIVALENT TO width: min(50%, 500px); */
 
     margin: 3px;
     padding: 25px 50px 75px 100px;
@@ -230,21 +300,24 @@ div {
   
 }
 ```
-::: details By default (`box-sizing: content-box`), height and width do not include padding or borders.
-![padding border margin image](https://cdn.hashnode.com/res/hashnode/image/upload/v1662289464907/UChQ641Mf.png)
-```txt
-500px (width of content area) + 150px (left padding + right padding) + 10px (left border + right border) = 500px (as we set max-width else 660 px)
 
-100px (height of content area) + 100px (top padding + bottom padding) + 10px (top border + bottom border) = 210px (total height)
+<details>
+<summary>By default (<code>box-sizing: content-box</code>), height and width do not include padding or borders.</summary>
+
+![padding border margin image](https://cdn.hashnode.com/res/hashnode/image/upload/v1662289464907/UChQ641Mf.png)
+
+```txt
+500px (content width) + 150px (left + right padding) + 10px (left + right border) = 660px (total width, when the parent is wide enough that width: 50% is at least 500px; max-width caps the content width at 500px)
+
+100px (content height) + 100px (top + bottom padding) + 10px (top + bottom border) = 210px (total height)
 ```
 
+</details>
+
 ### Some named colors in CSS
-Named colors can be used for simplicity, for more precise colors, use `RGB (red-green-blue values), HEX codes or HSL (hue-saturation-light values)`
+Named colors can be used for simplicity, for more precise colors, use `RGB (red-green-blue values), HEX codes or HSL (hue-saturation-lightness values)`
 
 [CSS Color Names Visualizer](https://davidbau.com/colors)
-
-
-:::
 
 
 
@@ -254,8 +327,9 @@ CSS provides special pseudo-classes to style each state. Order matters:
 
 #### `:link → :visited → :hover → :active`
 
-:::tabs
-== :link
+("**LoVe HAte**": LinK, Visited, Hover, Active.) These pseudo-classes all have the same specificity, so when several of them match at once (e.g. a visited link under the mouse) the rule written **last** wins. If `a:hover` is written before `a:link`, the later `a:link` rule overrides it and the hover effect never appears.
+
+#### :link
 a normal, user has never clicked before link. DEFAULT STATE
 👉 Use: Show users that the link is new / unexplored
 
@@ -265,15 +339,15 @@ a:link {
 }
 ```
 
-== :visited
+#### :visited
 a link the user has visited
-Use: Help users recognize pages they’ve already opened
+Use: Help users recognize pages they’ve already opened (for privacy, browsers only allow colour-related properties here)
 ```css
 a:visited {
   color: purple;
 }
 ```
-== :hover
+#### :hover
 a link when the user's mouse pointer is placed over the link.
 Use: commonly used for interaction feedback. Indicate “this is clickable”
 ```css
@@ -282,7 +356,7 @@ a:hover {
   color: darkblue;
 }
 ```
-== :active
+#### :active
 Applies at the exact moment the link is clicked (mouse down)
 Give a **very short** “pressed link” feedback
 ```css
@@ -290,31 +364,21 @@ a:active {
   color: red;
 }
 ```
-:::
 
-<pseudo-class />
+For more info checkout: [User-interaction pseudo classes](2-7-css-extra.md#user-interaction-pseudo-classes)
 
-For more info checkout: [User-interaction pseudo classes](2-css-extra.md#user-interaction-pseudo-classes)
+### CSS `display` Property
 
-<!-- Display Property -->
-<div class="card">
-  <h2>CSS <code>display</code> Property</h2>
-  <p>
-    The <code>display</code> property controls how an element behaves on the page.
-  </p>
+The `display` property controls how an element behaves on the page.
 
-  <ul>
-    <li><strong>inline</strong> : flows inside text</li>
-    <li><strong>block</strong> : takes full width</li>
-    <li><strong>inline-block</strong> : behaves like inline, but allows width, height, padding, and margin like a block
-</li>
-    <li><strong>flex</strong> : flexible block for rows or columns</li>
-    <li><strong>grid</strong> : 2D grid system</li>
-  </ul>
-</div>
+- **inline** : flows inside text
+- **block** : takes full width
+- **inline-block** : behaves like inline, but allows width, height, padding, and margin like a block
+- **flex** : flexible block for rows or columns
+- **grid** : 2D grid system
 
-::: warning `display: none;` removes the element from layout entirely. (does not take up any space)
-:::
+> [!WARNING]
+> `display: none;` removes the element from layout entirely. (does not take up any space) `visibility: hidden;` hides the element but keeps its space.
 
 ## CSS Combinators
 Combinators define relationships between elements.
@@ -336,7 +400,7 @@ div + p {
   background-color: yellow;
 }
 ```
-selects the first `<p>` element that immediately follows a `<div>`, and share the same parent
+selects the `<p>` element that immediately follows a `<div>`, and share the same parent
 
 4. **Subsequent sibling (~)**: selects all following siblings
     
