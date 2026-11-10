@@ -1,6 +1,6 @@
 # String Formatting in Python
 
-In python course, we have been introduced to various ways of string formatting like `f-strings`, `.format` method and `%` operator. Now we will shortly revist these concepts before moving to a few more advanced string templating tools like `string.Template` and `jinja2.Template`.
+In python course, we have been introduced to various ways of string formatting like `f-strings`, `.format` method and `%` operator. Now we will shortly revisit these concepts before moving to a few more advanced string templating tools like `string.Template` and `jinja2.Template`.
 
 ---
 
@@ -12,7 +12,7 @@ The `%` operator is an older method of string formatting in Python, similar to t
 - `%d` - Integers
 - `%f` - Floating point numbers
 
-``` python
+```python
 name = "John"
 age = 25
 greeting = "Hello, my name is %s and I am %d years old." % (name, age)
@@ -25,9 +25,11 @@ Output:
 Hello, my name is John and I am 25 years old.
 ```
 
+The type check is real but not complete: `"%d" % "a"` raises a `TypeError`, while `"%d" % 3.7` silently truncates the float and gives `'3'`. Values can also be picked by name from a dictionary: `"%(name)s is %(age)d" % {"name": "John", "age": 25}`.
+
 ### pros:
 
-- Safer than `f-strings` and `str.format()`, does not allow any code execution or attribute access.
+- Safer than `f-strings` and `str.format()` when the format string can be influenced by a user: it only looks up values (by position, or by dictionary key with `%(name)s`) and does not allow any code execution or attribute access.
 - Supported in all Python versions.
 - Simple and straightforward for basic formatting needs.
 
@@ -39,11 +41,11 @@ Hello, my name is John and I am 25 years old.
 
 ---
 
-## str.format() method (Python 2.7+) <a id="str-format-method"></a>
+## str.format() method (Python 2.6+) <a id="str-format-method"></a>
 
-The `str.format()` method allows you to format strings by placing placeholders in the string and then calling the `format()` method with the values to replace those placeholders. `str.format()` replaces placeholders with values and allows **accessing object attributes** and **items**, but **does not evaluate Python expressions.**
+The `str.format()` method allows you to format strings by placing placeholders in the string and then calling the `format()` method with the values to replace those placeholders. `str.format()` replaces placeholders with values and allows **accessing object attributes** and **items**, but **does not evaluate Python expressions.** (It was introduced in Python 2.6; empty `{}` placeholders need 2.7 or later.)
 
-``` python
+```python
 name1 = "Bob"
 age1 = 25
 
@@ -65,14 +67,37 @@ Hello, my name is Bob and I am 25 years old.
 Hello, my name is Charlie and I am 28 years old.
 ```
 
+Attribute and item access, and the limit on expressions:
+
+```python
+class User:
+    def __init__(self):
+        self.name = "Bob"
+        self.scores = [90, 80]
+
+u = User()
+print("{u.name} scored {u.scores[1]}".format(u=u))   # attribute + item access
+try:
+    print("{a+b}".format(a=1, b=2))                  # expressions are not evaluated
+except KeyError as e:
+    print("KeyError:", e)
+```
+
+Output:
+
+```txt
+Bob scored 80
+KeyError: 'a+b'
+```
+
 ### pros
 
-- More flexible than both printf-style formatting and f-strings.
+- More flexible than printf-style formatting (attribute and item access, many formatting options).
 - Allows accessing object attributes and items.
 - Supports advanced formatting options.
-- Safer than f-strings as it does not evaluate arbitrary expressions.
-- Can be reused with different data.
-- Available in all Python versions from 2.7 and 3.x.
+- Safer than f-strings **for templates that are written in code** as it does not evaluate arbitrary expressions.
+- Can be reused with different data (the template string is separate from the values).
+- Available in all Python versions from 2.6 and 3.x.
 
 ### cons
 
@@ -81,7 +106,7 @@ Hello, my name is Charlie and I am 28 years old.
 - Only allows basic substitutions.
 - Not suitable for complex templating needs.
 - Supports attributes and items, but not full expressions, which is safer than f-strings but still can be dangerous in certain contexts.
-- **Security risk if user input is involved in template itself.**
+- **Security risk if user input is involved in the template (format string) itself:** the attacker can read attributes through placeholders such as `"{0.__init__.__globals__[SECRET]}"` and leak data. Passing user text as a **value** (`"{}".format(user_text)`) is harmless: the text is inserted as it is.
 
 ---
 
@@ -89,7 +114,7 @@ Hello, my name is Charlie and I am 28 years old.
 
 f-strings or formatted string literals are a way to embed expressions inside string literals, using curly braces `{}`. They are prefixed with the letter `f` or `F`. f-strings allow for **full expression evaluation** inside the curly braces.
 
-``` python
+```python
 name = "Alice"
 age = 30
 greeting = f"Hello, my name is {name} and I am {age} years old."
@@ -116,7 +141,7 @@ Hello, my name is Alice and I am 30 years old.
 - Template and data live together
 - Evaluated immediately
 - Not reusable as a template
-- **Security risk if user input is directly embedded**
+- The template is source code, so it can never come from a user (and must never be built with `eval`). User text that is placed inside `{}` as a **value** is just inserted, never executed: `f"Hello {user_text}"` with `user_text = "{__import__('os').getcwd()}"` prints that text as it is.
 
 ---
 
@@ -124,30 +149,29 @@ Hello, my name is Alice and I am 30 years old.
 
 | Feature                     | % Operator          | str.format()        | f-strings           |
 |-----------------------------|---------------------|---------------------|---------------------|
-| Python Version              | All versions        | 2.7+ and 3.x        | 3.6+                |
+| Python Version              | All versions        | 2.6+ and 3.x        | 3.6+                |
 | Syntax                      | `%s`, `%d`, etc.    | `{}` placeholders   | `f"{}"` literals |
 | Readability                 | Low                 | Moderate            | High                |
-| Expression Evaluation       | No                  | Limited             | Yes(complete access)                 |
-| Accessing Attributes/Items  | No                  | Yes                 | Yes                 |   
+| Expression Evaluation       | No                  | No (attributes and items only) | Yes (complete access)                 |
+| Accessing Attributes/Items  | Dictionary keys only (`%(name)s`) | Yes                 | Yes                 |   
 | Reusability                 | Yes                 | Yes                 | No                  |
-| Security Risk with User Input| Negligible                 | Medium              | Very High                |
+| Risk if the **template string** comes from a user | Low (values only, no attribute access) | **High** (attribute access can leak data) | Not possible (the template is source code) |
+| Risk if user text is a **value** | None               | None                | None                |
 | Use case suitability        | legacy code     | Moderate formatting | Simple formatting |
 
 ---
 
-:::danger
-**Security Warning:** Avoid using f-strings or `str.format()` with untrusted user input. Both `fstring` and `string.format` allows **dynamic expression evaluation** which can be exploited. Always sanitize and validate any user-provided data before embedding it in strings or simply use safer templating engines like [**string.Template**](./string-templating.md#stringtemplate) or [**jinja2.Template**](./jinja2.md#jinja2-guide).<br>
-:::
+> [!CAUTION]
+> **Security Warning:** The dangerous case is a **user-controlled template (format string)**, not user-supplied values. Never call `str.format()` on a format string that comes from untrusted input, because placeholders can read attributes and items of the objects we pass (`"{0.__init__.__globals__[SECRET]}"` leaks module variables), and never build f-strings from user input with `eval`. If users must write templates, use a safer templating engine like [**string.Template**](3-3-string-templating.md#stringtemplate) (no attribute access) or a sandboxed [**jinja2**](3-4-jinja2.md) environment (a normal Jinja2 template is **not** safe for user-written templates either). Values that end up in HTML must still be escaped (XSS).
 
-:::tip
-
-- **see comparision of string formatting methods in python** [here](https://realpython.com/python-string-formatting/#choosing-the-right-string-formatting-method)
-
-- **see comparsion with templating tools** [here](./jinja2.md#comparison-tables)
-
-- for more information on security risks related to string formatting, refer to this article: [Python String Formatting Security Risks](https://www.geeksforgeeks.org/python/vulnerability-in-str-format-in-python/)
-
-***though there are more ways of string formatting in python like '%' operator, and more techniques related to `str.format()` method, we will not be covering them here. But you can refer to the official documentation for more details: [python official documentation](https://docs.python.org/3/library/string.html#formatstrings)***
-:::
+> [!TIP]
+>
+> - **see comparison of string formatting methods in python** [here](https://realpython.com/python-string-formatting/#choosing-the-right-string-formatting-method)
+>
+> - **see comparison with templating tools** [here](3-4-jinja2.md#comparison-tables)
+>
+> - for more information on security risks related to string formatting, refer to this article: [Python String Formatting Security Risks](https://www.geeksforgeeks.org/python/vulnerability-in-str-format-in-python/)
+>
+> ***though there are more ways of string formatting in python like '%' operator, and more techniques related to `str.format()` method, we will not be covering them here. But you can refer to the official documentation for more details: [python official documentation](https://docs.python.org/3/library/string.html#formatstrings)***
 
 ---
