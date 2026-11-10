@@ -1,13 +1,15 @@
-::: danger Out of syllabus
-These topics are only for learning purposes if someone is really interested in styling. Can be skipped if you lack time.
-:::
+> [!CAUTION]
+> **Out of syllabus**
+>
+> These topics are only for learning purposes if someone is really interested in styling. Can be skipped if you lack time.
+
 | Purpose     | Common Properties                  | Example |
 |------------|------------------------------------|---------|
-| Text       | `color`, `text-align`, `transform` | `color: #ff6347; text-align: center; text-transform: uppercase;` |
+| Text       | `color`, `text-align`, `text-transform` | `color: #ff6347; text-align: center; text-transform: uppercase;` |
 | Border     | `border`, `border-radius`          | `border: 2px dotted darkgray; border-radius: 6px;` |
 | Background | `background-color`, `background-image` | `background-color: rgb(51, 52, 81);` |
 
-- `justify`: Stretches the lines so that each line has equal width
+- `text-align: justify`: Stretches the lines so that each line has equal width
 - `vertical-align` sets the vertical alignment of an element: `baseline, length/%, sub, super, top, middle, bottom, text-top/bottom`
 
 ## Fonts
@@ -28,10 +30,11 @@ These topics are only for learning purposes if someone is really interested in s
 /* arial, georgia, courier new */
 ```
 - `font-size`: `small, medium, large`
-    - `em`: This uni`t is relative to the font size of the parent element.
+    - `em`: For `font-size`, this unit is relative to the font size of the parent element. (For every other property, such as `padding` or `margin`, `em` is relative to the element's own font size.)
     - `rem`: This unit is relative to the font size of the root HTML element.
     - `%:` This unit is relative to the font size of the parent element
-    - `smaller` and `larger`: These units adjust the font size relative to th`e parent element.
+    - `smaller` and `larger`: These keywords adjust the font size relative to the parent element.
+
 👉 Always provide **fallback** fonts so the browser can choose if the first one is not found or installed properly.
 
 ## Lists
@@ -59,8 +62,8 @@ div.tablecontainer {
 - Table will display a horizontal scrollbar if the screen is too small to display the full content.
 
 
-::: warning `<table>, <th>, and <td>` elements have separate borders.
-:::
+> [!WARNING]
+> `<table>, <th>, and <td>` elements have separate borders by default (`border-collapse: separate`). Use `border-collapse: collapse;` on the table to merge them into single lines.
 
 
 #### Center Align Block Elements
@@ -72,6 +75,8 @@ To horizontally center a block-level element, we use:
   margin: auto;
   width: 50%; /* required */
 }
+```
+```html
 <div class="center"></div>
 ```
 <!-- 
@@ -113,8 +118,7 @@ selector::pseudo-element {
 }
 ```
 
-::: tabs
-==::first-line
+#### ::first-line
 styles only the first visible line of text inside. 
 ⚠️**ONLY FOR block-level** elements & text-related properties are allowed
 (color, font, background, spacing, etc.)
@@ -129,7 +133,7 @@ use: Highlight the opening line of an article or blog post.
 }
 ```
 
-== ::first-letter
+#### ::first-letter
 styles only the first letter of text inside.
 ⚠️**ONLY FOR block-level** elements & text-related properties are allowed
 
@@ -145,10 +149,10 @@ styles only the first letter of text inside.
 Creates magazine-style opening paragraphs.
 
 
-== ::before
+#### ::before
 inserts content before the actual content of an element.
 
-⚠️Requires the `content :` property
+⚠️Requires the `content :` property (without it nothing is generated)
 
 Use: Automatically add labels or icons:
 ```css
@@ -160,7 +164,7 @@ Use: Automatically add labels or icons:
 ```
 Now, every `.note` element automatically starts with “Note:”.
 
-== ::after
+#### ::after
 inserts content after the element’s content.
 ⚠️Requires the `content :` property
 
@@ -174,7 +178,7 @@ Use: Add status symbols, task lists or validation feedback.
 }
 ```
 
-== ::marker
+#### ::marker
 styles the bullet or number of list items.
 
 Use: Highlight important list points. (not list text just markers)
@@ -186,7 +190,7 @@ Use: Highlight important list points. (not list text just markers)
 }
 ```
 
-== ::selection
+#### ::selection
 styles text selected by the user (mouse drag or keyboard selection).
 
 ⚠️Only limited properties(color, background)
@@ -200,7 +204,7 @@ Use: Match text selection with theme color
 }
 ```
 
-== ::backdrop
+#### ::backdrop
 styles the overlay behind dialogs or modals when they are active.
 Use: Dim background to focus user attention.
 ```css
@@ -208,7 +212,6 @@ dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.6);
 }
 ```
-:::
 
 | Selector                 | Meaning                        |
 | ------------------------ | ------------------------------ |
@@ -243,8 +246,7 @@ selector:pseudo-class {
 
 These pseudo-classes depend on an element’s **position inside its parent**.
 
-::: tabs
-== :first-child
+##### :first-child
 Styles an element **only if it is the first child** of its parent.
 
 ```css
@@ -254,7 +256,7 @@ Styles an element **only if it is the first child** of its parent.
 ```
 Use: Highlight the first menu item.
 
-== :last-child
+##### :last-child
 Styles an element **only if it is the last child**.
 Use: Style the last item differently (e.g., “Logout”).
 
@@ -263,7 +265,7 @@ Use: Style the last item differently (e.g., “Logout”).
   color: red;
 }
 ```
-== :only-child
+##### :only-child
 
 Matches an element **only if it is the single child** of its parent.
 Use: Center text when only one paragraph exists.
@@ -273,7 +275,7 @@ Use: Center text when only one paragraph exists.
   text-align: center;
 }
 ```
-== :nth-child(n)
+##### :nth-child(n)
 
 Selects elements based on **order (1-based index)**.
 
@@ -294,7 +296,6 @@ Use: Highlight the most recent notification.
   font-weight: bold;
 }
 ```
-:::
 
 
 #### Type-Based Pseudo-Classes
@@ -311,7 +312,7 @@ article p:first-of-type {
 Similarily:
 1. `:last-of-type` selects the last element of that type.
 2. `:only-of-type`: Matches an element that is the **only one of its type**.
-3.`:nth-of-type(n)`: selects the nth element of a given type.
+3. `:nth-of-type(n)`: selects the nth element of a given type.
 
 ```css
 table tr:nth-of-type(2) {
@@ -321,9 +322,8 @@ table tr:nth-of-type(2) {
 
 
 #### 👥User Interaction Pseudo-Classes
-:::tabs
 
-== :hover
+##### :hover
 Applied when the mouse pointer is over an element.
 
 ```css
@@ -332,7 +332,7 @@ Applied when the mouse pointer is over an element.
 }
 ```
 
-==:active
+##### :active
 
 Applied **while an element is being clicked**.
 
@@ -342,9 +342,9 @@ a:active {
 }
 ```
 
-==:focus
+##### :focus
 
-Applied when an element receives keyboard focus.
+Applied when an element has focus (e.g. after a click or Tab key).
 
 ```css
 input:focus {
@@ -363,8 +363,7 @@ form:focus-within {
 
 #### 🔹 Form-State Pseudo-Classes
 
-:::tabs
-== :checked
+##### :checked
 Matches checked checkboxes or radio buttons.
 
 ```css
@@ -373,7 +372,7 @@ input:checked {
 }
 ```
 
-== :disabled/:enabled
+##### :disabled/:enabled
 
 ```css
 button:disabled {
@@ -385,7 +384,7 @@ input:enabled {
 }
 ```
 
-==:read-only/:read-write
+##### :read-only/:read-write
 
 ```css
 input:read-only {
@@ -396,7 +395,7 @@ textarea:read-write {
   background-color: white;
 }
 ```
-==:valid/:invalid
+##### :valid/:invalid
 Use: Real-time form validation feedback.
 
 
@@ -410,7 +409,7 @@ input:invalid {
 }
 ```
 
-== :required/:optional
+##### :required/:optional
 
 ```css
 input:required {
@@ -421,12 +420,10 @@ input:optional {
   background-color: #f0fff0;
 }
 ```
-:::
 
 #### Logical & Utility Pseudo-Classes
 
-:::tabs
-==:empty
+##### :empty
 
 Selects elements with **no children and no text**.
 
@@ -436,7 +433,7 @@ div:empty {
 }
 ```
 
-== :not(selector)
+##### :not(selector)
 
 Selects everything **except** what is specified.
 
@@ -446,7 +443,7 @@ p:not(.important) {
 }
 ```
 
-==:is(selector)
+##### :is(selector)
 
 Simplifies multiple selectors.
 
@@ -456,7 +453,7 @@ Simplifies multiple selectors.
 }
 ```
 
-== :where(selector)
+##### :where(selector)
 
 Same as `:is`, but **adds no specificity**.
 
@@ -465,7 +462,7 @@ Same as `:is`, but **adds no specificity**.
   text-decoration: none;
 }
 ```
-== :has(selector)
+##### :has(selector)
 Selects a parent **based on its children**.
 
 ```css
@@ -473,7 +470,7 @@ Selects a parent **based on its children**.
   border: 2px solid black;
 }
 ```
-== :target
+##### :target
 Styles an element referenced by the URL hash.
 Use: anchor-based navigation.
 ```css
@@ -481,7 +478,6 @@ Use: anchor-based navigation.
   background-color: yellow;
 }
 ```
-:::
 
 | Selector          | Meaning                       |
 | ----------------- | ----------------------------- |
@@ -495,7 +491,7 @@ Use: anchor-based navigation.
 | `:nth-of-type(n)` | nth of that type              |
 | `:hover`          | Mouse over                    |
 | `:active`         | While clicking                |
-| `:focus`          | Has keyboard focus            |
+| `:focus`          | Has focus (click / Tab)       |
 | `:checked`        | Checked checkbox/radio        |
 | `:disabled`       | Disabled input                |
 | `:enabled`        | Enabled input                 |
@@ -513,14 +509,16 @@ Use: anchor-based navigation.
 | `:target`         | Element matched by URL `#id`  |
 
 
-::: details Bootstrap
+<details>
+<summary>Bootstrap</summary>
+
 👉 Bootstrap is a CSS framework that provides ready-made styles and layout utilities so we don’t have to write everything from scratch.
 
 - To import bootstrap styles in your html file
-```css
+```html
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
 ```
-- for details checkout: [Bootstrap guide MAD1 project]
+- for details checkout: Bootstrap guide (MAD1 project)
 - Standard styles for buttons, forms, icons
 - Uses `label for`	, `aria-describedby`, `aria-labelledby` for screen readers
 
@@ -543,15 +541,17 @@ Use: anchor-based navigation.
   <label class="form-check-label" for="exampleCheck1">Check me out</label>
 </div>
 ```
-:::
 
-::: warning other less-used css properties if you are interested to checkout 
-1. [text-decoration](https://www.w3schools.com/css/css_text_decoration.asp)
-2. [text spacing](https://www.w3schools.com/css/css_text_spacing.asp)
-3. [shadow](https://www.w3schools.com/css/css_text_shadow.asp)
-4. [Google provides more Fonts](https://developers.google.com/fonts/docs/getting_started)
-`<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia">`
-5. [For more icons](https://fontawesome.com/) `<i class="fas fa-cloud"></i>`
-6. [styling for HTML forms](https://www.w3schools.com/css/css_form.asp)
-7. [gradients](https://www.w3schools.com/css/css3_gradients.asp)
-:::
+</details>
+
+> [!WARNING]
+> **other less-used css properties if you are interested to checkout**
+>
+> 1. [text-decoration](https://www.w3schools.com/css/css_text_decoration.asp)
+> 2. [text spacing](https://www.w3schools.com/css/css_text_spacing.asp)
+> 3. [shadow](https://www.w3schools.com/css/css_text_shadow.asp)
+> 4. [Google provides more Fonts](https://developers.google.com/fonts/docs/getting_started)
+> `<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia">`
+> 5. [For more icons](https://fontawesome.com/) `<i class="fas fa-cloud"></i>`
+> 6. [styling for HTML forms](https://www.w3schools.com/css/css_form.asp)
+> 7. [gradients](https://www.w3schools.com/css/css3_gradients.asp)

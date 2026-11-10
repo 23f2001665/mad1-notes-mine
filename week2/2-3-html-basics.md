@@ -1,6 +1,6 @@
 # HTML Introduction
 
-HTML (HyperText Markup Language) is the standard markup language used to create web pages. It provides the structure and content of a webpage, allowing browsers to display text, images, links, and other multimedia elements. HTML5 is the current standard of HTML, introducing features and improvements for modern web development. In this section, we will cover the basics of HTML5, including its syntax and how to create a simple webpage.
+HTML (HyperText Markup Language) is the standard markup language used to create web pages. It provides the structure and content of a webpage, allowing browsers to display text, images, links, and other multimedia elements. HTML is maintained as a *Living Standard* (continuously updated by the WHATWG); "HTML5" was the last numbered version, and the name is still commonly used for modern HTML. In this section, we will cover the basics of HTML5, including its syntax and how to create a simple webpage.
 
 ## Basic Structure of an HTML Document
 
@@ -30,7 +30,7 @@ Output:
 
 In the example above, we have the following key components:
 
-- `<!DOCTYPE html>`: Declares the document type and version of HTML.
+- `<!DOCTYPE html>`: Declares that this is an HTML5 document and switches the browser to **standards mode**. (Without it, browsers fall back to *quirks mode*, which imitates old browser behaviour.) In HTML5 it does not carry a version number.
 - `<html>`: The root element that contains all other HTML elements.
 - `<head>`: Contains meta-information about the document, such as the title and links to stylesheets.
 - `<meta charset="UTF-8">`: Specifies the character encoding for the document.
@@ -42,7 +42,8 @@ In the example above, we have the following key components:
   - The `<p>` tag defines a paragraph of text. It can be used to display a block of normal text.
   - We will explore more HTML elements in the next section.
 
-:::details **Try it yourself**
+<details>
+<summary><b>Try it yourself</b></summary>
 
 You can create your own HTML document by copying the example above into a text editor and saving it with a `.html` extension. Open the file in a web browser to see how it looks!
 
@@ -60,7 +61,7 @@ You can create your own HTML document by copying the example above into a text e
 </html>
 ```
 
-:::
+</details>
 
 ## Common HTML Elements
 
@@ -154,7 +155,7 @@ Example of a Container Element:
 </div>
 ```
 
-- **Void Elements**: These elements do not contain any content and do not have a closing tag. They are self-closing. Examples include `<img>`, `<br>`, `<hr>`, and `<input>`.
+- **Void Elements**: These elements do not contain any content and have no closing tag (there is nothing to close). Examples include `<img>`, `<br>`, `<hr>`, and `<input>`.
 
 Example of a Void Element:
 
@@ -165,13 +166,13 @@ Example of a Void Element:
 <input type="text" name="username">
 ```
 
-:::info Note:
-
-- Container elements are used to group and structure content, while void elements are used to insert standalone items like images or line breaks.
-- In general we should ensure that container elements have both opening and closing tags, while void elements do not have closing tags.
-- Modern HTML5 allows void elements to be written without a trailing slash (e.g., `<img>` instead of `<img />`), but both forms are acceptable.
-
-:::
+> [!NOTE]
+> **Note:**
+>
+> - Container elements are used to group and structure content, while void elements are used to insert standalone items like images or line breaks.
+> - In general we should ensure that container elements have both opening and closing tags, while void elements do not have closing tags.
+> - Modern HTML5 allows void elements to be written without a trailing slash (e.g., `<img>` instead of `<img />`), but both forms are acceptable. The slash is ignored by the browser.
+> - HTML has no "self-closing" tags: `<div />` does **not** close the `div` (the browser reads it as just `<div>`, so the following content ends up inside it). Non-void elements always need their closing tag.
 
 ### Semantic vs Non-Semantic Elements
 
@@ -192,62 +193,71 @@ HTML elements can be classified into semantic and non-semantic elements based on
 | `<em>`            | `<i>`                   |
 | `<strong>`        | `<b>`                   |
 
-:::info Note:
-
-- While `<i>` and `<b>` are valid HTML elements, they only provide visual or stylistic meaning. `<em>` and `<strong>` convey semantic importance and are preferred when the emphasis or importance of text matters.
-- Rule of thumb:
-  - If an element describes what the content is, use a semantic element.
-  - If it only groups or styles content, use a non-semantic element.
-
-:::
+> [!NOTE]
+> **Note:**
+>
+> - While `<i>` and `<b>` are valid HTML elements, they only provide visual or stylistic meaning. `<em>` and `<strong>` convey semantic importance and are preferred when the emphasis or importance of text matters.
+> - Rule of thumb:
+>   - If an element describes what the content is, use a semantic element.
+>   - If it only groups or styles content, use a non-semantic element.
 
 ## Block-level vs inline elements
 
-<div class="card">
-  <h3>Block-level Elements</h3>
-  <p>
-    Block-level elements always start on a new line and stretch to fill the
-    full width of their container.
-  </p>
-  <ul>
-    <li><code>&lt;div&gt;</code></li>
-    <li><code>&lt;h1&gt; to &lt;h6&gt;</code></li>
-    <li><code>&lt;p&gt;</code></li>
-    <li><code>&lt;form&gt;</code></li>
-    <li><code>&lt;section&gt;</code></li>
-    <li><code>&lt;ul, ol, li&gt;</code></li>
+### Block-level Elements
 
-  </ul>
-</div>
-<div class="card">
-  <h3>Inline Elements</h3>
-  <p>
-    Inline elements stay within the same line and only take as much space as
-    their content needs.
-    <strong>width</strong> and <strong>height</strong> do not apply to inline elements.
-  </p>
-  <ul>
-    <li><code>&lt;span&gt;</code></li>
-    <li><code>&lt;a&gt;</code></li>
-    <li><code>&lt;img&gt;</code></li>
-    <li><code>&lt;strong, em&gt;</code></li>
+Block-level elements always start on a new line and stretch to fill the full width of their container.
 
-  </ul>
-</div>
+- `<div>`
+- `<h1>` to `<h6>`
+- `<p>`
+- `<form>`
+- `<section>`
+- `<ul>`, `<ol>` and `<li>` (a list item behaves like a block)
 
+### Inline Elements
+
+Inline elements stay within the same line and only take as much space as their content needs.
+
+- `<span>`, `<a>`, `<strong>`, `<em>`: **width** and **height** do not apply to these (inline *non-replaced* elements).
+- `<img>`: also inline, but it is a *replaced* element (its size comes from the image), so `width` and `height` **do** apply to it.
 
 - Block-level elements are typically used for larger sections of content, while inline elements are used for smaller pieces of content within block-level elements.
 - By default, elements have block or inline behavior, which can later be changed using CSS properties like `display: block;` or `display: inline;`
 
-<block-inline-visualizer />
+<details>
+<summary><b>Try it yourself: block vs inline</b></summary>
 
-::: details Explanation (Edit the HTML on the left and observe how it appears on the right)<br>1. Why do `SPAN` and `EM` appear on **same line**?<br>2. Why does `PARAGRAPH` move to the **next line**?<br>3.  `SPAN`s, `STRONG`, and `ANCHOR` are inline yet Why they take up **two lines**?<br>4. Why does `DIV` &  final `SPAN` take full line?
+Save this HTML in a file and open it in the browser (the container is only 300px wide so that the inline elements have to wrap):
+
+```html
+<div id="wrap" style="width: 300px">
+  <span id="s1">SPAN</span> <em id="e1">EM</em>
+  <p id="pp">PARAGRAPH</p>
+  <span class="g">SPAN one</span> <span class="g">SPAN two</span> <strong class="g">STRONG text</strong> <a class="g" href="#">ANCHOR link text</a>
+  <div id="dv">DIV</div>
+  <span id="last">final SPAN</span>
+</div>
+```
+
+![block vs inline example](../static/html-block-inline.png)
+
+*Red dashed outlines = inline elements, blue solid outlines = block-level elements.*
+
+**Explanation**
+
+1. Why do `SPAN` and `EM` appear on **same line**?
+2. Why does `PARAGRAPH` move to the **next line**?
+3. `SPAN`s, `STRONG`, and `ANCHOR` are inline yet why do they take up **two lines**?
+4. Why does `DIV` & the final `SPAN` take a full line?
+
+Answers:
 
 1. `<span>`,`<em>`, `<strong>`, `<a>` are **inline** elements so take up required width and try to fit on same line.
 2. `<p>` is **block-level** element so starts on a **new line**
 3. If multiple inline elements  can't fit within same line then they spill onto next line.
 4. `div` is **block-level** element so occupies the **full width** of their container and Force the next element onto a new line (even if that's **inline**)
-:::
+
+</details>
 
 ## Summary
 
@@ -259,10 +269,8 @@ In this chapter, we learned:
 - Semantic vs non-semantic elements
 - Block-level vs inline elements
 
-:::tip **Extra Resources:**
+### Extra Resources
 
 - [HTML Basics (W3Schools)](https://www.w3schools.com/html/html_basic.asp)
 - [HTML5 Introduction (MDN)](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Introduction)
 - [Creating a Simple HTML Page (YouTube)](https://youtu.be/PlxWf493en4?t=56) → A video tutorial on creating a simple HTML page.
-
-:::

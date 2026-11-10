@@ -64,11 +64,10 @@ This will generate the following links:
 
 - Alice's Profile: `/user/alice`
 - Bob's Profile: `/user/bob?age=23`
-<UrlForVisualizer />
 
 **Note**: The `age` parameter in Bob's profile link is passed as a query parameter since it is not part of the route definition. If a parameter is not defined in the route, it will be added as a query string.
 
-:::info `url_for` with Static Files
+#### `url_for` with Static Files
 
 To generate links for static files in application, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
 
@@ -90,28 +89,26 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-:::
+(`url_for('static', filename='images/logo.png')` gives `/static/images/logo.png`.)
 
-:::warning
+> [!WARNING]
+> **`url_for` only works while a request (or an application context with `SERVER_NAME` configured) is active**
+>
+> The `url_for` function needs to know the current application. This means that we can only use `url_for` within view functions or when a context is pushed. If we try to use `url_for` outside of any context, we will encounter a `RuntimeError`.
+>
+> For example, the following code will raise an error:
+>
+> ```python
+> from flask import url_for
+>
+> # This will raise a RuntimeError
+> home_url = url_for('home')
+> ```
+>
+> To avoid this error, make sure to use `url_for` within view functions, or in scripts and tests use `with app.test_request_context():`. Note that a plain `with app.app_context():` is **not** enough: `url_for` then still raises a `RuntimeError` ("Unable to build URLs outside an active request without 'SERVER_NAME' configured") unless `app.config['SERVER_NAME']` is set.
 
-**`url_for` only works within application context**
-
-The `url_for` function requires an application context to work properly. This means that we can only use `url_for` within view functions or when the application context is pushed. If we try to use `url_for` outside of an application context, we will encounter a `RuntimeError`.
-
-For example, the following code will raise an error:
-
-```python
-from flask import url_for
-
-# This will raise a RuntimeError
-home_url = url_for('home')
-```
-
-To avoid this error, make sure to use `url_for` within view functions or use the `app.app_context()` context manager when needed.
-
-:::
-
-:::details Why to use `url_for` instead of hardcoded URLs?
+<details>
+<summary>Why to use <code>url_for</code> instead of hardcoded URLs?</summary>
 
 Using `url_for` has several advantages over hardcoding URLs:
 
@@ -119,7 +116,8 @@ Using `url_for` has several advantages over hardcoding URLs:
 2. **Dynamic URL Generation**: `url_for` can generate URLs based on the current application context, making it easier to handle different environments (development, production, etc.).
 3. **URL Parameters**: `url_for` allows us to pass parameters to routes easily, making it more flexible for dynamic URL generation.
 4. **Avoiding Errors**: Hardcoding URLs can lead to errors if the URL structure changes. Using `url_for` helps prevent broken links in our application.
-:::
+
+</details>
 
 ## app.url_map / flask routes
 
@@ -151,21 +149,21 @@ if __name__ == '__main__':
 In this example, when we run the application, it will print the URL map to the console, showing all the defined routes and their corresponding endpoints. It will look something like this:
 
 ```text
-Map([<Rule '/' (HEAD, OPTIONS, GET) -> home>,
- <Rule '/about' (HEAD, OPTIONS, GET) -> about>,
- <Rule '/contact' (HEAD, OPTIONS, GET) -> contact>,
- <Rule '/static/<path:filename>' (HEAD, OPTIONS, GET) -> static>])
+Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>,
+ <Rule '/' (GET, OPTIONS, HEAD) -> home>,
+ <Rule '/about' (GET, OPTIONS, HEAD) -> about>,
+ <Rule '/contact' (GET, OPTIONS, HEAD) -> contact>])
 ```
 
-This output shows the routes defined in the application along with the HTTP methods they support and the endpoint functions they are associated with.
+This output shows the routes defined in the application along with the HTTP methods they support and the endpoint functions they are associated with. (Flask adds the `static` route itself; the order of the methods inside the brackets can differ from run to run.)
 
 We can also use `flask routes` cli command to see the routes of our application. To use this command, navigate to the directory containing our Flask application and run the following command in our terminal:
 
 ```bash
-flask routes
+flask --app app routes
 ```
 
-This command will display a list of all the routes in our Flask application, along with their methods and endpoints.
+This command will display a list of all the routes in our Flask application, along with their methods and endpoints (`HEAD` and `OPTIONS` are added automatically and are not listed).
 
 ## Redirecting Requests
 
@@ -196,17 +194,15 @@ In this example, when a user accesses the `/old-page` route, they will be redire
 
 When we run this Flask application and navigate to `http://localhost:5000/old-page`, we will be automatically redirected to `http://localhost:5000/new-page`, where we will see the message "This is the New Page!".
 
-:::info
-
-- Though it is very common to use `redirect` along with `url_for`, we can also use it with hardcoded URLs. However, using `url_for` is recommended for the reasons mentioned earlier.
-- The `redirect` function sends an HTTP *302* response to the client, indicating that the resource has been *temporarily moved to a different URL*.
-- We can also specify different status codes with the `redirect` function, such as *301 for permanent redirects*.
-
-```python
-return redirect(url_for('new_page'), code=301)
-```
-
-:::
+> [!NOTE]
+>
+> - Though it is very common to use `redirect` along with `url_for`, we can also use it with hardcoded URLs. However, using `url_for` is recommended for the reasons mentioned earlier.
+> - The `redirect` function sends an HTTP *302* response to the client, indicating that the resource has been *temporarily moved to a different URL*.
+> - We can also specify different status codes with the `redirect` function, such as *301 for permanent redirects*.
+>
+> ```python
+> return redirect(url_for('new_page'), code=301)
+> ```
 
 ## Error Generation, Handling and Custom Error Pages
 
@@ -225,8 +221,8 @@ def get_resource(resource_id):
 
 @app.route('/admin/user_list')
 def admin_user_list():
-    user = ...   # some logic to get current user
-    if user.role != 'admin':
+    user = {'name': 'Bob', 'role': 'student'}   # some logic to get current user
+    if user['role'] != 'admin':
         abort(403)  # Forbidden access
     return 'List of users for admin.'
 
@@ -236,12 +232,12 @@ if __name__ == '__main__':
 
 In this example, when a user tries to access a resource with an ID other than 1, a 404 Not Found error is raised using the `abort` function. Similarly, if a non-admin user tries to access the admin user list, a 403 Forbidden error is raised.
 
-**Note**: The `user` object in the `admin_user_list` function is assumed to be defined elsewhere in our application, representing the currently logged-in user.
+**Note**: In a real application the `user` would come from the logged-in session (week 9); here it is a fixed dictionary so that the example runs.
 
 We can also create custom error pages for different HTTP error codes by defining error handlers using the `errorhandler` decorator. Here is an example of how to create custom error pages for 404 and 403 errors:
 
 ```python
-from flask import Flask, render_template
+from flask import Flask, abort, render_template
 app = Flask(__name__)
 
 @app.route('/resource/<int:resource_id>')
@@ -252,7 +248,8 @@ def get_resource(resource_id):
 
 @app.route('/admin/user_list')
 def admin_user_list():
-    if user.role != 'admin':
+    user = {'name': 'Bob', 'role': 'student'}   # some logic to get current user
+    if user['role'] != 'admin':
         abort(403)  # Forbidden access
     return 'List of users for admin.'
 
@@ -270,9 +267,10 @@ if __name__ == '__main__':
 
 Now when a 404 or 403 error occurs, Flask will render the corresponding custom error page defined in the `404.html` and `403.html` templates.
 
-:::details `abort` [Error Codes](../week1/1-network-history-TCP.md#status-codes)
+<details>
+<summary><code>abort</code> <a href="../week1/1-3-network-history-TCP.md#status-codes">Error Codes</a></summary>
 
-By default, the `abort` function can raise only a few HTTP status codes which are defined by underlying **Werkzeug** server. Here is a list of a few of those error codes:
+By default, the `abort` function can raise only those HTTP status codes for which the underlying **Werkzeug** library defines an exception class (about 30, not every code). Here is a list of a few of those error codes:
 
 - 400: Bad Request
 - 401: Unauthorized
@@ -280,6 +278,7 @@ By default, the `abort` function can raise only a few HTTP status codes which ar
 - 404: Not Found
 - 405: Method Not Allowed
 - 500: Internal Server Error
+- (and others such as 409, 418, 429, 503)
 
 If we try to `abort(407)` it will throw a **LookupError** instead of a **Proxy Authentication Required** error. The `abort` function can raise only those HTTP status codes that have corresponding `HTTPException` classes in Werkzeug.<br>
 While many common HTTP status codes are supported (404, 403, 401, etc.), some valid HTTP codes like 407 (Proxy Authentication Required) do not have a built-in exception class.<br>
@@ -295,7 +294,8 @@ def custom_error():
 ```
 
 This will return a response with the specified error code without raising a LookupError.
-:::
+
+</details>
 
 ## Flask Cli Commands:
 
@@ -305,16 +305,16 @@ Flask provides a command-line interface (CLI) that allows us to manage our Flask
 - `flask shell`: This command opens an interactive Python shell with the Flask application context.
 - `flask routes`: This command displays all the routes defined in the Flask application along with their methods and endpoints.
 
-To use the Flask Cli commands, we need to set the `FLASK_APP` environment variable to point to our Flask application file. This can be done by exporting the variable in the terminal:
-
-```bash
-export FLASK_APP=app.py
-```
-
-or specifying it in the command itself:
+To use the Flask Cli commands, we need to tell Flask where our application is. The simplest way is to specify it in the command itself (Flask 2.2 and later):
 
 ```bash
 flask --app mydir/app.py run
+```
+
+or to set the `FLASK_APP` environment variable (`export FLASK_APP=app.py` on macOS/Linux, `set FLASK_APP=app.py` on Windows Command Prompt):
+
+```bash
+export FLASK_APP=app.py
 ```
 
 ## Summary
@@ -327,7 +327,7 @@ Flask offers many more features that we can be really useful. Some of these feat
 
 - **Blueprints**: A way to organize our application into smaller, reusable components.
 - **Flask Extensions**: A wide range of extensions are available to add functionality to our Flask applications, such as database integration, authentication, and more.
-- **Session Management**: Flask provides built-in support for managing user sessions using secure cookies.
+- **Session Management**: Flask provides built-in support for managing user sessions using cookies that are **signed** (the user cannot change them without being detected) but not encrypted (the user can read what is stored in them), so never keep secrets in `session`.
 - **Flask CLI**: A command-line interface for managing Flask applications, including running the development server, initializing databases, and more.
 - **Testing Support**: Flask includes tools for testing our applications, making it easier to write unit tests and integration tests.
 
@@ -335,4 +335,4 @@ In the next module, we will explore HTML Forms and how to handle user input in F
 
 ### Additional resources
 
-- [Flask Documentation - URL Building](https://flask.palletsprojects.com/en/2.3.x/quickstart/#url-building)
+- [Flask Documentation - URL Building](https://flask.palletsprojects.com/en/stable/quickstart/#url-building)
