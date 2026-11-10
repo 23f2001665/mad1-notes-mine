@@ -1,6 +1,6 @@
 # Week 6
 
-<SessionResources :week="6" />
+
 This week introduces Web APIs and REST architecture, focusing on how applications communicate over the web using **standardized** interfaces.
 
 You will learn how RESTful APIs expose resources, how HTTP methods `GET, POST, PUT, DELETE` map to these actions, and how data is transferred using formats like `JSON`. The week also introduces `Flask-RESTful` for building structured APIs and OpenAPI `swagger` for documenting them.
@@ -17,7 +17,7 @@ By the end of this week, you should be able to:
 
 ### Topics Covered
 
-- **[REST APIs and Data Exchange](6-REST-APIs)**
+- **[REST APIs and Data Exchange](6-Rest-APIs.md)**
   REST constraints, CRUD mapping with HTTP verbs, idempotent operations, JSON data transfer and API design example.
 
 - **[Flask RESTful Basics](6-flask-restful-basics.md)**
