@@ -17,20 +17,17 @@ The structure used to design, build, and deliver web applications over the inter
 
 
 ### Client–Server Responsibilities
-:::tabs
-== Client
+#### Client
 
 - User interface
 - Sends requests
 - Displays response
 
-== Server
+#### Server
 
 - Stores data
 - Processes business logic and handles requests
 - Returns results
-
-:::
 
 
 ```mermaid
@@ -83,7 +80,7 @@ Separation of concerns
 ### 2: Stateless
 
 Each request is independent
-- Server does NOT remember past requests
+- Server does NOT keep any per-client state (a "session") between requests. (The data of the resources themselves, e.g. the rows of a database, is of course stored.)
 - Client must send **all required data every time**, we can't assume it is the same server answering us.
 - Server does not know:
   - which page user was on
@@ -105,14 +102,14 @@ sequenceDiagram
 
 ### 3: Layered System
 
-The system is organized into multiple layers, where each layer has a specific responsibility.
+The system is organized into multiple layers, where each layer has a specific responsibility and only talks to the layer next to it. The client cannot tell whether it is connected directly to the final server or to an intermediary on the way.
 
 #### Typical Components
 
 - Load Balancer
 - Authentication Server
 - Backend Servers
-- Divide app into view, controller and model. [MVC](../week4/4-database-layer-MODEL.md)
+- (Inside the backend, the code itself is often divided into model, view and controller, see [MVC](../week4/4-1-database-layer-MODEL.md); that is a separate, internal way of layering.)
 ##### Benefits
 Can make changes in one layer without affecting other, making it secure and easier to maintain or debug errors.
 - reuse components
@@ -130,7 +127,7 @@ graph LR
 
 ### 4: Cacheability
 
-Responses can be stored (cached)
+Responses can be stored (cached): the server labels every response as cacheable or not, and caches (browser, proxy, CDN) may reuse a cacheable response instead of asking the server again. In practice mostly `GET` responses are cached.
 
 #### Benefits
 
@@ -150,13 +147,14 @@ graph LR
 
 - `Cache-Control`
 - `Expires`
+- `ETag` / `Last-Modified` (let a client ask "has it changed?")
 
 ---
 
 ### 5: Uniform Interface
 
 
-Standard way of communication between client-server.
+Standard way of communication between client-server. It has four parts: resources are identified by URIs, they are manipulated through representations (JSON, XML, ...), every message describes itself (method, status code, `Content-Type`), and responses can contain links to other resources (HATEOAS).
 
 ### Rules
 
@@ -165,8 +163,9 @@ Standard way of communication between client-server.
 | Method | Purpose |
 | ------ | ------- |
 | GET    | Read    |
-| POST   | Create  |
-| PUT    | Update  |
+| POST   | Create (the server chooses the new id) |
+| PUT    | Replace / update a whole resource (can also create it at a URL chosen by the client) |
+| PATCH  | Update part of a resource |
 | DELETE | Remove  |
 
 #### Benefits
@@ -179,9 +178,9 @@ Standard way of communication between client-server.
 
 #### 6. Code on Demand
 
-Server can send executable code. Example:
+The only **optional** constraint: the server can send executable code to extend the client. Example:
 - JavaScript
-- Applets
+- Applets (obsolete today)
 
 ## Summary Table
 
@@ -192,7 +191,7 @@ Server can send executable code. Example:
 | Layered           | Modular system              |
 | Cacheable         | Improve performance         |
 | Uniform Interface | Standard communication      |
-| Code on Demand    | Extend client functionality |
+| Code on Demand    | Extend client functionality (optional) |
 
 ---
 
@@ -217,20 +216,18 @@ Server can send executable code. Example:
 - Server does **not remember previous requests**.
 - This is called **stateless communication**.
 
-::: info
-- Everything is a **resource** (user, product, order, etc.)
-- Each resource has:
-
-  - A **URI**
-  - A **representation** (JSON, XML, etc.)
-
-```
-GET /users/101
-```
-
-→ Fetch user with ID 101
-
-:::
+> [!NOTE]
+> - Everything is a **resource** (user, product, order, etc.)
+> - Each resource has:
+>
+>   - A **URI**
+>   - A **representation** (JSON, XML, etc.)
+>
+> ```
+> GET /users/101
+> ```
+>
+> → Fetch user with ID 101
 
 ### REST Communication Flow (Sequence)
 
@@ -256,7 +253,7 @@ GET /users/101
 
      - Data (JSON/XML)
      - Status codes (200, 404, etc.)
-     - Links to other resources (HATEOAS – optional advanced concept)
+     - Links to other resources (HATEOAS, part of the uniform interface but often left out in practice)
 
 | Aspect             | CRUD                         | REST                         |
 | ------------------ | ---------------------------- | ---------------------------- |
@@ -276,7 +273,7 @@ GET /users/101
 ##  Idempotent Operations
 - An operation is **idempotent** if:
 
-  - Repeating it multiple times → same result as once
+  - Repeating it multiple times → same effect on the server as doing it once (the *response* may differ: a second `DELETE` can answer "not found", the state is still the same)
 
 ### Idempotent
 
@@ -289,7 +286,14 @@ GET /users/101
 ### Non-Idempotent
 
 - POST
-- PATCH
+- PATCH (not guaranteed to be idempotent)
+
+| Method | Safe (does not change anything) | Idempotent |
+| ------ | ------------------------------- | ---------- |
+| GET, HEAD, OPTIONS | Yes | Yes |
+| PUT, DELETE | No | Yes |
+| POST | No | No |
+| PATCH | No | No (not guaranteed) |
 
 
 
@@ -301,6 +305,8 @@ GET /users/101
 - Restart server
 - Control IoT devices
 
+(Actions like these are modelled as resources too, e.g. `POST /servers/5/restarts` creates a "restart".)
+
 
 
 ### **Flask Application with Idempotency Handling**
@@ -310,7 +316,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 # User model
@@ -322,16 +327,22 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
+def name_from_request():
+    data = request.get_json(silent=True) or {}   # None (not an error) if the body is missing or not JSON
+    return data.get("name")
+
 # ✅ IDEMPOTENT: PUT (Update or Create)
 @app.route("/users/<int:user_id>", methods=["PUT"])
 def update_user(user_id):
-    data = request.get_json()
-    user = User.query.get(user_id)
-    
+    name = name_from_request()
+    if not name:
+        return jsonify({"message": "name is required"}), 400
+    user = db.session.get(User, user_id)
+
     if user:  # If user exists, update it
-        user.name = data["name"]
+        user.name = name
     else:  # If user doesn't exist, create it (still idempotent)
-        user = User(id=user_id, name=data["name"])
+        user = User(id=user_id, name=name)
         db.session.add(user)
 
     db.session.commit()
@@ -340,20 +351,22 @@ def update_user(user_id):
 # ✅ IDEMPOTENT: DELETE (Always results in resource absence)
 @app.route("/users/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
-    user = User.query.get(user_id)
-    
+    user = db.session.get(User, user_id)
+
     if user:  # Delete if exists
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "User deleted"}), 200
-    else:  # If already deleted, response remains same
+    else:  # Already deleted: the state is the same (many APIs answer 404 here, still idempotent)
         return jsonify({"message": "User not found"}), 200
 
 # ❌ NON-IDEMPOTENT: POST (Creates new entry every time)
 @app.route("/users", methods=["POST"])
 def create_user():
-    data = request.get_json()
-    new_user = User(name=data["name"])
+    name = name_from_request()
+    if not name:
+        return jsonify({"message": "name is required"}), 400
+    new_user = User(name=name)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"id": new_user.id, "name": new_user.name}), 201
@@ -362,5 +375,13 @@ def create_user():
 if __name__ == "__main__":
     app.run(debug=True)
 ```
+
+Sending the same request twice to an empty database (`curl` or Thunder Client, JSON body, `Content-Type: application/json`):
+
+| Request | 1st response | 2nd response (same request again) |
+| ------- | ------------ | --------------------------------- |
+| `PUT /users/7` with `{"name": "Alice"}` | `200 {"id": 7, "name": "Alice"}` | `200 {"id": 7, "name": "Alice"}` (same, one row) |
+| `POST /users` with `{"name": "Bob"}` | `201 {"id": 8, "name": "Bob"}` | `201 {"id": 9, "name": "Bob"}` (a new row) |
+| `DELETE /users/7` | `200 {"message": "User deleted"}` | `200 {"message": "User not found"}` (state unchanged) |
 
 ---
