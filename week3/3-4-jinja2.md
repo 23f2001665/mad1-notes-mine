@@ -262,23 +262,43 @@ Jinja2 provides mechanisms to define and manage variables within templates. This
 
 ### Scopes in Jinja2
 
-A scope defines the visibility and lifetime of variables. In Jinja2, variables can be defined in different scopes, and their accessibility depends on where they are defined.There are three types of scopes in Jinja2: global scope, block scope, and loop scope.
+A scope defines where a variable can be seen. Jinja2 has one **template (top-level) scope** and a few constructs that open a **nested scope**:
 
-#### Global Scope
+- **Template scope**: everything written outside the constructs below. A variable set here can be used from the `set` line to the end of the template, also inside the nested scopes (reading it is always allowed), and by templates that `include` or `import` this one (see [Sharing variables between templates](#sharing-variables-between-templates)).
+- **Nested scopes** are opened by `for` (a **new scope for every iteration**), `with`, `macro`, `call`, `filter` and `{% block %}`. Variables set inside them (and the loop variables `i`, `loop`...) disappear at the end tag.
+- **`if` / `elif` / `else` do not open a scope**: a variable set inside an `if` is still there after `{% endif %}`.
 
-Variables defined in the global scope are accessible throughout the entire template. They can be set using the `set` statement and can be accessed anywhere in the template after they are defined.
+| Construct | New scope? | Is a variable `set` inside visible after the end tag? |
+| --------- | ---------- | ----------------------------------------------------- |
+| `if` / `elif` / `else` | No | **Yes** |
+| `for` | Yes, for every iteration | No |
+| `with` | Yes | No |
+| `macro` | Yes | No |
+| `call` | Yes | No |
+| `filter` | Yes | No |
+| `block` (template inheritance) | Yes | No |
 
-#### Block Scope
+```python
+from jinja2 import Template
+template = Template("""
+{% if true %}{% set a = "set inside if" %}{% endif %}
+{% for i in range(2) %}{% set b = "set inside for" %}{% endfor %}
+a: {{ a }}
+b: {{ b }}
+""")
+print(template.render())
+```
 
-Variables defined within a block (e.g., within a `with` statement) are only accessible within that block and its nested blocks. They are not accessible outside of the block.
+Output:
 
-#### Loop Scope
+```txt
+a: set inside if
+b:
+```
 
-Variables defined within a loop (e.g., loop variables) are only accessible within the loop. They cannot be accessed outside of the loop. Each iteration of the loop creates a new scope for the loop variable.
+### Set Statement (Assigning Variables)
 
-### Set Statement (Global Variables)
-
-We can define variables using the `set` statement. Variables defined with `set` are available in the entire **scope** where they are declared and after their declaration.
+We can define variables using the `set` statement. A variable defined with `set` exists in the **scope** where it is declared (see above) from the `set` line onwards: uses before the `set` line do not see it.
 
 ```jinja
 
@@ -286,6 +306,38 @@ We can define variables using the `set` statement. Variables defined with `set` 
 {% set variable = value %}
 <p>{{ variable }}</p>  <!-- defined here -->
 ```
+
+`set` accepts any expression, and it has two more forms:
+
+```jinja
+{% set total = price * quantity %}                 {# any expression #}
+{% set a, b = 1, 2 %}                               {# unpacking #}
+{% set greeting %}Hello, {{ name }}!{% endset %}    {# block form: the rendered text becomes the value #}
+{% set shout | upper %}hello{% endset %}            {# block form with a filter #}
+```
+
+```python
+from jinja2 import Template
+template = Template("""
+{% set a, b = 1, 2 %}
+{% set greeting %}Hello, {{ name }}!{% endset %}
+{% set shout | upper %}{{ greeting }}{% endset %}
+{{ a }} {{ b }}
+{{ greeting }}
+{{ shout }}
+""")
+print(template.render(name="Alice"))
+```
+
+Output:
+
+```txt
+1 2
+Hello, Alice!
+HELLO, ALICE!
+```
+
+Unlike Python, chained assignment (`{% set a = b = 1 %}`) is not allowed (`TemplateSyntaxError`), and we cannot assign to constants such as `true`.
 
 **Example #6**
 
@@ -305,15 +357,15 @@ Output:
   <p>Total Price: $59.97</p>
 ```
 
-- Variable defined with `set` takes the scope of the block where it is defined and is accessible in that block and any nested blocks. If defined in the global scope, it is accessible throughout the entire template after its declaration.
+- A variable defined with `set` takes the scope where it is defined and can be **read** in that scope and in every nested scope inside it (loops, macros, `with`...). If defined at the top level, it can be read through the rest of the template after its declaration.
 
-A variable defined with `set` cannot be modified inside loops or blocks. If we try to set a variable inside a loop or block, it creates a new variable that exists only inside that loop or block and it will not affect the variable outside.
+The name of an outer variable cannot be **re-assigned** from inside a nested scope (`for`, `with`, `macro`, ...). A `set` there creates a *new* variable with the same name that exists only inside that scope (inside a loop: only for that one iteration) and it will not affect the variable outside. (`if` is the exception: it opens no scope, so a `set` inside it does change the variable.)
 
 A follow up question become then how we can accumulate values in a variable across iterations of a loop? We will see that in the next section using `namespace`.
 
 ### Namespace (Mutable Objects)
 
-Jinja2 provides a `namespace` class that can be used to create mutable objects that can be modified within loops and blocks. This allows us to create mutable variables that can be updated across iterations of a loop or within blocks.
+Jinja2 provides a `namespace` class that can be used to create mutable objects that can be modified within loops and blocks. This allows us to create mutable variables that can be updated across iterations of a loop or within blocks. The *name* `ns` itself is never re-assigned, only an attribute of the object it refers to is changed, and that object is shared by every scope.
 
 **Example #7**
 
@@ -344,6 +396,21 @@ Output:
 >
 > - Each namespace object is a separate mutable object that can hold multiple attributes. We can use it to store and update multiple related variables together.
 > - The namespace object follows normal variable scope, but its attributes can be mutated across inner scopes because the object reference is shared.
+> - Only a `namespace` accepts `{% set obj.attr = ... %}`: on a dictionary it raises a `TemplateRuntimeError` ("cannot assign attribute on non-namespace object").
+
+Often we do not need an accumulator at all, a filter is simpler (and heavy calculations are better done in the Python view function before rendering):
+
+```python
+from jinja2 import Template
+template = Template("{{ range(5) | sum }} and {{ products | sum(attribute='price') }}")
+print(template.render(products=[{"price": 2}, {"price": 3}]))
+```
+
+Output:
+
+```txt
+10 and 5
+```
 
 ### With Statement (Scoped Variables)
 
@@ -389,6 +456,7 @@ template = Template("""
   <p>Value of x: {{ x }}</p>
   {% for i in range(5) %}
     {% set x = x + i %}
+    <p>x inside the loop: {{ x }}</p>
   {% endfor %}
   <p>Value of x after loop: {{ x }}</p>
 """)
@@ -403,12 +471,42 @@ Output:
 
 ```html
   <p>Value of x: 10</p>
+    <p>x inside the loop: 10</p>
+    <p>x inside the loop: 11</p>
+    <p>x inside the loop: 12</p>
+    <p>x inside the loop: 13</p>
+    <p>x inside the loop: 14</p>
   <p>Value of x after loop: 10</p>
 ```
 
-In this example, the variable `x` is defined in the global scope with an initial value of `10`. Inside the loop, we attempt to set `x` to `x + i` for each iteration. However the `set x = x + i` statement inside the loop only creates a new variable `x` that exists inside the loop; it does not modify the global variable `x`. Therefore, after the loop, `x` still retains its original value of `10`. (Use a `namespace` to really accumulate a value.)
+In this example, the variable `x` is defined in the template scope with an initial value of `10`. Inside the loop, we attempt to set `x` to `x + i` for each iteration. However the `set x = x + i` statement inside the loop only creates a new variable `x` that exists inside that one iteration: every iteration starts again from the outer `x` (still `10`), so the loop prints `10, 11, 12, 13, 14` instead of accumulating `10, 11, 13, 16, 20`. It does not modify the outer variable `x` either. Therefore, after the loop, `x` still retains its original value of `10`. (Use a `namespace` to really accumulate a value.)
 
 </details>
+
+### Sharing variables between templates
+
+Variables set at the **top level** of a template are also visible to other templates:
+
+- **`include`** gets the current scope, so the included template sees the variables we `set` (and the loop variable when included inside a loop).
+- **`import`** / **`from ... import`** exposes the top-level `set` variables (and macros) of the imported template as `module.name`; names that start with an underscore (`_private`) are not exported.
+- A **child template** (`extends`) can `set` a variable at its top level, outside the blocks, and both the base layout and the child's blocks can use it. A `set` made **inside** a `{% block %}` is local to that block.
+
+```python
+from jinja2 import Environment, DictLoader
+
+env = Environment(loader=DictLoader({
+    "base.html": "<title>{{ title }}</title>\n{% block content %}{% endblock %}",
+    "home.html": '{% extends "base.html" %}\n{% set title = "Home" %}\n{% block content %}<h1>{{ title }}</h1>{% endblock %}',
+}))
+print(env.get_template("home.html").render())
+```
+
+Output:
+
+```html
+<title>Home</title>
+<h1>Home</h1>
+```
 
 ### Macros (Reusable Blocks)
 
@@ -490,7 +588,7 @@ print(rendered)
 
 | Construct   | What it does                                            |
 | ----------- | ------------------------------------------------------- |
-| `set`       | Assigns variable within current scope                   |
+| `set`       | Assigns variable in the current scope (`if` does not open a new one) |
 | `with`      | Creates a new limited scope                             |
 | `namespace` | Provides a mutable object that bypasses scope isolation |
 | `macro`     | Defines a reusable block that can accept parameters     |
@@ -1006,7 +1104,7 @@ In this guide, we have explored the key features of Jinja2, a powerful templatin
 
 - `extends` → Base layouts with `block`s
 - `include` → Reusable fragments (`with context` / `without context`)
-- `set` → Variables (global scope)
+- `set` → Variables (current scope; top-level ones are shared with `include` / `import` / base templates)
 - `with` → Variables (block scope, e.g., flash messages)
 - `macro` → Reusable function-like snippets
 - `filters` → Modify data output
