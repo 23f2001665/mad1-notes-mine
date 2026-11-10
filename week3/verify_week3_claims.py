@@ -401,6 +401,66 @@ def jinja_scopes():
         f"a macro can read a top-level `set` ({macro!r}); note's explanation says `x + i` and its output no longer shows the comment: {good}")
 
 
+def jinja_set_statement():
+    if not need("jinja2"):
+        return None
+    import jinja2
+    from jinja2 import DictLoader, Environment, Template, TemplateRuntimeError, TemplateSyntaxError
+    t = note("3-4-jinja2.md")
+    # --- the scope table of the note: is a `set` made inside the construct visible after its end tag?
+    cases = {
+        "if / elif / else": "{% if true %}{% set a = 1 %}{% endif %}", "for": "{% for i in [1] %}{% set a = 1 %}{% endfor %}",
+        "with": "{% with %}{% set a = 1 %}{% endwith %}", "macro": "{% macro m() %}{% set a = 1 %}{% endmacro %}{{ m() }}",
+        "call": "{% macro m() %}{{ caller() }}{% endmacro %}{% call m() %}{% set a = 1 %}{% endcall %}", "filter": "{% filter upper %}{% set a = 'x' %}{% endfilter %}",
+    }
+    visible = {k: Template(v + "[{{ a }}]").render().endswith("[1]") or Template(v + "[{{ a }}]").render().endswith("[x]") for k, v in cases.items()}
+    env = Environment(loader=DictLoader({
+        "b.html": "{% block c %}{% endblock %}[{{ inner }}]<{{ title }}>", "blk.html": '{% extends "b.html" %}{% block c %}{% set inner = "I" %}{{ inner }}{% endblock %}',
+        "home.html": '{% extends "base.html" %}{% set title = "Home" %}{% block content %}<h1>{{ title }}</h1>{% endblock %}',
+        "base.html": "<title>{{ title }}</title>{% block content %}{% endblock %}",
+        "lib.html": "{% set pub = 'P' %}{% set _priv = 'Q' %}", "inc.html": "[{{ x }}{{ k }}]"}))
+    block_local = env.get_template("blk.html").render() == "I[]<>"
+    child_top = env.get_template("home.html").render() == "<title>Home</title><h1>Home</h1>"
+    imp = env.from_string("{% import 'lib.html' as lib %}{{ lib.pub }}|{{ lib._priv }}").render() == "P|"
+    inc = env.from_string("{% set x = 'S' %}{% for k in [1, 2] %}{% include 'inc.html' %}{% endfor %}").render() == "[S1][S2]"
+    # --- loops: a new scope for every iteration, and the outer variable is re-read each time
+    gotcha = Template("{% set x = 10 %}{% for i in range(5) %}{% set x = x + i %}{{ x }},{% endfor %}[{{ x }}]").render()
+    per_iter = Template("{% for i in range(3) %}{% set y = (y|default(0)) + 1 %}{{ y }}{% endfor %}").render()
+    leaked = Template("{% for i in range(2) %}{% endfor %}[{{ i }}][{{ loop }}]").render()
+    # --- forms of set
+    forms = Template("{% set a, b = 1, 2 %}{% set g %}Hi {{ n }}{% endset %}{% set s | upper %}{{ g }}{% endset %}{{ a }}{{ b }}|{{ g }}|{{ s }}").render(n="A")
+    try:
+        Template("{% set a = b = 1 %}")
+        chained = "accepted"
+    except TemplateSyntaxError:
+        chained = "TemplateSyntaxError"
+    try:
+        Template("{% set d = {} %}{% set d.k = 1 %}").render()
+        dict_attr = "accepted"
+    except TemplateRuntimeError:
+        dict_attr = "TemplateRuntimeError"
+    ns = Template("{% set ns = namespace(t=0) %}{% for i in range(5) %}{% set ns.t = ns.t + i %}{% endfor %}{{ ns.t }}").render()
+    do = Environment(extensions=["jinja2.ext.do"]).from_string("{% set l = [] %}{% for i in range(3) %}{% do l.append(i) %}{% endfor %}{{ l }}").render()
+    try:
+        Template("{% do 1 %}")
+        plain_do = "accepted"
+    except TemplateSyntaxError:
+        plain_do = "TemplateSyntaxError"
+    shadow = Template("[{{ x }}]{% set x = 2 %}[{{ x }}]").render(x=1)
+    fact = (visible == {"if / elif / else": True, "for": False, "with": False, "macro": False, "call": False, "filter": False} and block_local and child_top and imp and inc
+            and gotcha == "10,11,12,13,14,[10]" and per_iter == "111" and leaked == "[][]" and forms == "12|Hi A|HI A" and chained == "TemplateSyntaxError"
+            and dict_attr == "TemplateRuntimeError" and ns == "10" and do == "[0, 1, 2]" and plain_do == "TemplateSyntaxError" and shadow == "[1][2]")
+    good = (has(t, r"`if` / `elif` / `else` do not open a scope") and has(t, r"\| `if` / `elif` / `else` \| No \| \*\*Yes\*\* \|") and has(t, r"new scope for every iteration")
+            and has(t, r"10, 11, 12, 13, 14") and has(t, r"`{% set greeting %}") is False and has(t, r"\{% set greeting %\}") and has(t, r"chained assignment") and has(t, r"Sharing variables between templates")
+            and has(t, r"underscore") and has(t, r"cannot assign attribute on non-namespace object") and has(t, r"sum\(attribute='price'\)")
+            and not has(t, r"three types of scopes") and not has(t, r"Set Statement \(Global Variables\)") and not has(t, r"global scope") and not has(t, r"cannot be modified inside loops or blocks\. If we try"))
+    return fact and good, (
+        f"`set` made inside each construct is visible afterwards? {visible} (only `if` is transparent); inside a {{% block %}} it is local ({block_local}); a child's top-level `set title` reaches the base layout and its blocks ({child_top}); "
+        f"import exports it but not `_priv` ({imp}); include sees it and the loop variable ({inc}); `x = x + i` in a loop prints {gotcha!r} (every iteration starts from the outer x; a new scope per iteration: {per_iter!r}); "
+        f"loop variables are gone after the loop ({leaked!r}); unpacking + block set + block set with filter -> {forms!r}; chained `a = b = 1` -> {chained}; attribute assignment on a dict -> {dict_attr}; namespace -> {ns}; "
+        f"`do` extension appends ({do}) but is off by default ({plain_do}); a context variable is shadowed only after the set ({shadow!r}); note explains all of it and no longer says 'three types of scopes' / 'global scope' / 'blocks cannot': {good}")
+
+
 def jinja_whitespace():
     if not need("jinja2"):
         return None
@@ -628,6 +688,7 @@ if __name__ == "__main__":
                          (J, jinja_default_filter, "default() replaces only undefined values unless boolean=true"),
                          (J, jinja_loops, "break/continue need jinja2.ext.loopcontrols"),
                          (J, jinja_scopes, "set/with/namespace/macro scoping, comment not in output"),
+                         (J, jinja_set_statement, "the `set` statement: which constructs open a scope (not `if`), per-iteration scope, forms of set, sharing between templates"),
                          (J, jinja_whitespace, "`{%-` strips before the tag only; `-%}` after"),
                          (J, jinja_loader_needed, "extends/include need a loader (DictLoader); super(); include context rules"),
                          (J, jinja_autoescape_and_safety, "autoescape is opt-in; |e / |safe; sandbox; UndefinedError on attribute of undefined"),
