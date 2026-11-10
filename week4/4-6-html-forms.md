@@ -5,25 +5,24 @@ HTML forms are used to collect user input and send it to the server for processi
 Here is an example of a simple HTML form:
 
 ```html
- <form action="/submit" method="post">
+<form action="/submit" method="post">
 
-     <input type="text" id="name1" name="name" required>
-     <input type="email" id="email1" name="email" required>
-     
-     <button type="submit">Submit</button>
- </form>
- ```
+    <input type="text" id="name1" name="name" required>
+    <input type="email" id="email1" name="email" required>
+
+    <button type="submit">Submit</button>
+</form>
+```
 
 In this example, the form has two input fields for the user's name and email address, and a submit button. The `action` attribute specifies the URL where the form data will be sent, and the `method` attribute indicates that the form will use the POST method to send data.
 
-:::info
+> [!NOTE]
+>
+> - `GET` method appends the form data to the URL in name/value pairs (`/submit?name=John+Doe`), which is visible in the browser's address bar, history and server logs. It is suitable for non-sensitive data and when bookmarking or sharing the URL is desired (e.g. a search).
+> - `POST` method sends the form data in the body of the HTTP request, which is not visible in the URL. It is generally used for form submissions that modify server-side data. POST alone does **not** encrypt anything: the body can still be read on the network unless the site uses HTTPS.
+> - HTML forms can only use `GET` and `POST`. A form with `method="put"` is sent as a `GET` request; `PUT` and `DELETE` requests come from JavaScript or API clients.
 
-- `GET` method appends the form data to the URL in name/value pairs, which is visible in the browser's address bar. It is suitable for non-sensitive data and when bookmarking or sharing the URL is desired.
-- `POST` method sends the form data in the body of the HTTP request, which is not visible in the URL. It is more secure for sensitive data and is generally used for form submissions that modify server-side data.
-
-:::
-
-Any data sent through an HTML form should have `name` and `value` attributes for every data field. The `name` attribute represent the **key** and `value` attribute represent the **value** in the form data.
+Only the fields that have a `name` attribute are sent: the `name` attribute represents the **key** and the value is what the user typed or selected (for buttons, radio buttons, checkboxes and options it is their `value` attribute). A field without a `name` is not submitted.
 
 After submission, the browser encodes the form data as key–value pairs (derived from name and user-entered values) and sends it to the server using the specified encoding method. For example, if a user enters "John Doe" as the name and enters `john.doe@example.com` as the email, the form data will be sent to the server somewhat similar to the following format:
 
@@ -40,7 +39,7 @@ Now we will explore each of the components of an HTML form in detail.
 The `form` tag is used to create an HTML form. It contains various input elements, such as text fields, checkboxes, radio buttons, and submit buttons. The `form` tag has several important attributes:
 
 - `action`: Specifies the URL where the form data will be sent when the form is submitted. This can be a relative or absolute URL.
-- `method`: Specifies the HTTP method to be used when submitting the form. The most common methods are `GET` to send data as URL parameters and `POST` to send data in the request body.
+- `method`: Specifies the HTTP method to be used when submitting the form. Only `GET` (send data as URL parameters) and `POST` (send data in the request body) are possible.
 - `enctype`: Specifies the encoding type for the form data when it is submitted. The default value is `application/x-www-form-urlencoded`. For file uploads, it should be set to `multipart/form-data`.
 - `name`: Assigns a name to the form, which can be used to reference the form in JavaScript.
 - `target`: Specifies where to display the response after submitting the form. Common values include `_self` (default, same window), `_blank` (new window/tab), `_parent`, and `_top`.
@@ -72,11 +71,11 @@ This creates a single-line text input field for the username. The `value` attrib
 - `value`: Sets a default value for the input field.
 - `pattern`: Specifies a regular expression that the input value must match for validation.
 
-These attributes can be used be all `<input>` tags:
+These attributes can be used with most `<input>` tags (not every one: e.g. `readonly` has no effect on checkboxes and radio buttons):
 - `required`: Indicates that the input field must be filled out before submitting the form.
 - `disabled`: Disables the input field, preventing user interaction, submission and transmission over the network.
 - `title`: Provides additional information about the input field, usually displayed as a tooltip.
-- `readonly`: Makes the input field read-only, preventing user modification.
+- `readonly`: Makes the input field read-only, preventing user modification (unlike `disabled`, a read-only field **is** submitted).
 - `hidden`: Hides the input field from the user while keeping it in the DOM and allowing it to be submitted with the form.
 
 ### email Input
@@ -93,7 +92,7 @@ This creates an input field for email addresses. The browser will validate the i
 <input type="password" name="user_password" id="user_password_id" required>
 ```
 
-This creates a password input field where the entered text is masked for security.=
+This creates a password input field where the entered text is masked on the screen. The masking only hides the characters from onlookers: the password is still sent as plain text in the request, so a login form must be served over HTTPS.
 
 ### radio Input
 
@@ -118,19 +117,17 @@ Favourite Fruit:
 <input type="checkbox" name="fruit" id="banana_id" value="Banana"> Banana
 ```
 
-The `checkbox` input type allows users to select one or more options from a list. Each checkbox has a `name` attribute **(which should be the same for related checkboxes)** and a `value` attribute that represents the value sent to the server if the checkbox is checked. When the form is submitted, only the checked checkboxes will be included in the form data.
+The `checkbox` input type allows users to select one or more options from a list. Each checkbox has a `name` attribute **(which should be the same for related checkboxes)** and a `value` attribute that represents the value sent to the server if the checkbox is checked. When the form is submitted, only the checked checkboxes will be included in the form data (an unchecked checkbox sends nothing at all, not even its name).
 
 We can also add some additional attributes to the checkbox input type but they are similar to the radio input type.
 
-:::info
-
-If we want to select multiple values for the same field, we have to use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example, if multiple checkboxes with the name `fruit` are checked, we can get all selected fruits using:
-
-```python
-selected_fruits = request.form.getlist('fruit')
-```
-
-:::
+> [!NOTE]
+>
+> If we want to select multiple values for the same field, we have to use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example, if multiple checkboxes with the name `fruit` are checked, we can get all selected fruits using:
+>
+> ```python
+> selected_fruits = request.form.getlist('fruit')
+> ```
 
 ### Date-Time Input
 
@@ -138,7 +135,7 @@ selected_fruits = request.form.getlist('fruit')
 <input type="datetime-local" name="appointment" id="appointment_id">
 ```
 
-This creates a date-time input field that allows users to select both a date and a time. The `datetime-local` input type does not include timezone information. The value entered in this field will be sent to the server in the format `YYYY-MM-DDTHH:MM` (e.g., `2024-06-01T14:30`).
+This creates a date-time input field that allows users to select both a date and a time. The `datetime-local` input type does not include timezone information. The value entered in this field will be sent to the server in the format `YYYY-MM-DDTHH:MM` (the letter `T` separates date and time; e.g., `2024-06-01T14:30`).
 
 ### reset Input
 
@@ -173,7 +170,7 @@ The `select` tag is used to create a drop-down list in an HTML form. It contains
 
 ```html
 
-<label for="cars">Choose a car:</label>
+<label for="cars_id">Choose a car:</label>
 <select name="cars" id="cars_id">
   <option value="volvo">Volvo</option>
   <option value="saab">Saab</option>
@@ -204,47 +201,46 @@ We can also add some additional attributes to the option tag:
 - `hidden`: Hides the option from the dropdown list while keeping it in the DOM.
 - `label`: Provides a shorter label for the option, which can be used for accessibility purposes.
 
-:::info Providing a default blank option
-To provide a default blank option in a select dropdown, we can add an option tag with an empty value at the beginning of the select element. This allows users to see a blank option when they first interact with the dropdown.
+> [!NOTE]
+> **Providing a default blank option**
+>
+> To provide a default blank option in a select dropdown, we can add an option tag with an empty value at the beginning of the select element. This allows users to see a blank option when they first interact with the dropdown.
+>
+> ```html
+> <select name="cars" id="cars_id">
+>   <option value="" disabled selected>Select a car</option>
+>   <option value="volvo">Volvo</option>
+>   <option value="saab">Saab</option>
+>   <option value="fiat">Fiat</option>
+>   <option value="audi">Audi</option>
+> </select>
+> ```
+>
+> In this example, the first option has an empty value and is disabled and selected by default. This prompts users to select a car from the dropdown. Because that option is `disabled`, nothing is sent for `cars` if the user does not choose another one (`request.form.get('cars')` is `None`); add the `required` attribute to the `<select>` to make the browser insist on a choice.
 
-```html
-<select name="cars" id="cars_id">
-  <option value="" disabled selected>Select a car</option>
-  <option value="volvo">Volvo</option>
-  <option value="saab">Saab</option>
-  <option value="fiat">Fiat</option>
-  <option value="audi">Audi</option>
-</select>
-```
-
-In this example, the first option has an empty value and is disabled and selected by default. This prompts users to select a car from the dropdown.
-
-:::
-
-:::info Multiple Selection
-
-Same as `checkbox` input type, if we want to select multiple values from the `select` dropdown, we have to add the `multiple` attribute to the `select` tag and use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example:
-
-```html
-<select name="cars" id="cars_id" multiple>
-  <option value="volvo">Volvo</option>
-  <option value="saab">Saab</option>
-  <option value="fiat">Fiat</option>
-  <option value="audi">Audi</option>
-</select>
-```
-
-And in Flask, we can get all selected cars using:
-
-```python
-selected_cars = request.form.getlist('cars')
-```
-
-:::
+> [!NOTE]
+> **Multiple Selection**
+>
+> Same as `checkbox` input type, if we want to select multiple values from the `select` dropdown, we have to add the `multiple` attribute to the `select` tag and use `request.form.getlist('field_name')` in Flask to retrieve all selected values as a list. For example:
+>
+> ```html
+> <select name="cars" id="cars_id" multiple>
+>   <option value="volvo">Volvo</option>
+>   <option value="saab">Saab</option>
+>   <option value="fiat">Fiat</option>
+>   <option value="audi">Audi</option>
+> </select>
+> ```
+>
+> And in Flask, we can get all selected cars using:
+>
+> ```python
+> selected_cars = request.form.getlist('cars')
+> ```
 
 ## `file` input
 
-We can also use the `input` tag to create a file upload field in an HTML form. The `type` attribute should be set to `file` to create a file input field. But to successfully upload a file, the form's `enctype` attribute must be set to `multipart/form-data`.
+We can also use the `input` tag to create a file upload field in an HTML form. The `type` attribute should be set to `file` to create a file input field. But to successfully upload a file, the form's `method` must be `post` and its `enctype` attribute must be set to `multipart/form-data`; with the default encoding the browser sends only the file **name** (`file_upload=report.pdf`), not its content.
 
 ```html
 <form action="/upload" method="post" enctype="multipart/form-data">
@@ -257,7 +253,7 @@ This creates a file input field that allows users to select a file from their de
 
 Common attributes for the file input type include:
 
-- `accept`: Specifies the types of files that the server accepts (e.g., `image/*`, `.pdf`).
+- `accept`: A hint for the browser's file chooser about the types of files to offer (e.g., `image/*`, `.pdf`). It is not a security check, the user can still pick another file, so the server must validate uploads too.
 - `multiple`: Allows users to select multiple files for upload.
 
 ## textarea Tag
@@ -266,9 +262,9 @@ The `textarea` tag is used to create a multi-line text input field in an HTML fo
 
 ```html
 <textarea name="message" id="message_id" rows="4" cols="50" placeholder="Enter your message here..." required></textarea>
-``` 
+```
 
-This creates a multi-line text area for users to enter a message. The `rows` and `cols` attributes specify the visible dimensions of the text area, while the `placeholder` attribute provides a hint to the user about what to enter. The `required` attribute indicates that this field must be filled out before submitting the form.
+This creates a multi-line text area for users to enter a message. The `rows` and `cols` attributes specify the visible dimensions of the text area, while the `placeholder` attribute provides a hint to the user about what to enter. The `required` attribute indicates that this field must be filled out before submitting the form. (Browsers send line breaks of a textarea as `\r\n`.)
 
 Common attributes for the textarea tag include:
 
@@ -293,14 +289,15 @@ Label tags can be associated with input elements in two ways:
 
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>HTML Form Example</title>
 </head>
 <body>
     <h1>The Example Form</h1>
 
-<form action="/submit" method="post" enctype="multipart/form-data">
+<form action="/" method="post" enctype="multipart/form-data">
     <div id="user_info_section">
     <label for="username_id">Username:</label>
     <input type="text" name="username" id="username_id" placeholder="Enter your username" required>
@@ -316,7 +313,7 @@ Label tags can be associated with input elements in two ways:
     <label for="male_id">Male:</label>
     <input type="radio" name="gender" id="male_id" value="Male">
     <label for="female_id">Female:</label>
-    <input type="radio" name="gender" id="female_id" value="Female"> Female
+    <input type="radio" name="gender" id="female_id" value="Female">
     </div>
 
     <div id="fruit_section">
@@ -325,14 +322,14 @@ Label tags can be associated with input elements in two ways:
     <input type="checkbox" name="fruit" id="mango_id" value="Mango">
 
     <label for="apple_id">Apple:</label>
-    <input type="checkbox" name="fruit" id="apple_id" value="Apple"> Apple
+    <input type="checkbox" name="fruit" id="apple_id" value="Apple">
 
     <label for="banana_id">Banana:</label>
-    <input type="checkbox" name="fruit" id="banana_id" value="Banana"> Banana
+    <input type="checkbox" name="fruit" id="banana_id" value="Banana">
     </div>
 
     <div id="car_section">
-    <label for="cars">Choose a car:</label>
+    <label for="cars_id">Choose a car:</label>
     <select name="cars" id="cars_id">
       <option value="" disabled selected>Select a car</option>
       <option value="volvo">Volvo</option>
@@ -353,10 +350,11 @@ Label tags can be associated with input elements in two ways:
 
     <button type="submit">Submit Form</button>
 </form>
+</body>
 </html>
 ```
 
-To run this example, save it as an HTML file in `templates` folder and create a Flask application to handle the form submission. The content of the form can be accessed using the following code in Flask:
+To run this example, save it as `index.html` in the `templates` folder and create a Flask application to handle the form submission (the form's `action="/"` must be a route of the application, here `/`). The content of the form can be accessed using the following code in Flask:
 
 ```python
 from flask import Flask, render_template, request
@@ -374,7 +372,8 @@ def home():
         
         for file_key in files:
             file = files[file_key]
-            file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
+            if file.filename:  # an empty file field has an empty file name
+                file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
         return str(data_fields)  # Return form data as string for demonstration
     return render_template('index.html')
 
@@ -386,13 +385,13 @@ The folder structure should look like this:
 
 ```text
 week4/
-│├── app.py
-│└── templates/
-│    └── index.html
-|-uploads/  # This folder will be created automatically by the program to store uploaded files
+├── app.py
+├── templates/
+│   └── index.html
+└── uploads/    # created automatically by the program to store uploaded files
 ```
 
-This python code sets up a Flask application that renders the HTML form and handles form submissions. When the form is submitted, it retrieves the form data and saves any uploaded files to an "uploads" directory. More about request object can be found in the next section.
+This python code sets up a Flask application that renders the HTML form and handles form submissions. When the form is submitted, it retrieves the form data and saves any uploaded files to an "uploads" directory (created relative to the folder the program is started from). More about request object can be found in the next section.
 
 ## Summary
 

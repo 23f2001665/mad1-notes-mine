@@ -1,5 +1,5 @@
-::: tip A small recap for those who  want to revise SQL queries (Details of these concepts are covered in DBMS course)
-:::
+> [!TIP]
+> **A small recap** for those who want to revise SQL queries (Details of these concepts are covered in DBMS course)
 
 ## Database Example: **Library Management System**
 
@@ -37,14 +37,17 @@ This design shows a **many-to-many relationship**:
 * A book can be borrowed by multiple students (over course of time but one at a time).
 
 ## ER diagrams
-<img style="margin: auto;" src="../static/ER-diagram.jpg">
+![ER diagram of the library database](../static/ER-diagram.jpg)
 
-::: tip crow feet ER diagram (this is different from the ER symbols you learn in DBMS course⚠️<br> don't confuse the two conventions)
-- Vertical line `|` → One (Exactly one instance of the entity)<br>Ex. *A borrow record must be linked to exactly one student*
-- Circle `O` → Optional (Zero or more participate)<br>Ex. *A student may or may not have borrowed books.*
-- Crow's feet - Many<br> Ex. *A student can borrow many books.*
-- Second Vertical Line `||` → Mandatory (At least one)<br> Ex. Every borrow record must have at least one book
-:::
+> [!TIP]
+> **crow feet ER diagram** (this is different from the ER symbols you learn in DBMS course⚠️ don't confuse the two conventions)
+>
+> The symbol at the end of a line says how many instances of that entity can take part:
+>
+> - Vertical line `|` → **One**<br>Ex. *A borrow record must be linked to exactly one student* (a bar next to a bar, `||`, means *exactly one*)
+> - Circle `O` → **Zero** (the relationship is optional)<br>Ex. *A student may have borrowed no books at all.*
+> - Crow's feet → **Many**<br>Ex. *A student can borrow many books.*
+> - Symbols combine: `|O` zero or one, `||` exactly one, `|<` (bar + crow's foot) one or many, `O<` (circle + crow's foot) zero or many.
 
 ## Case 1: Create Table (Datatypes + Constraints)
 ```sql
@@ -70,27 +73,30 @@ VALUES ('S104', 'Kunal', 'ME');
 
 ### ❓ Find all CS students
 
-:::code-group
-```sql [SQL]
+**SQL**
+
+```sql
 SELECT name
 FROM Students
 WHERE dept = 'CS';
--- WHERE category IN ('CS', 'Math'); for >1 departments
+-- WHERE dept IN ('CS', 'EE'); for >1 departments
 ```
 
-```txt [output]
+**Output**
+
+```txt
 Aditi
 Meera
 ```
-:::
 
 👉🏻 `SELECT` retrieves data from a table, and WHERE filters rows before they are returned.
 
 
 ## Case 4: JOIN (Who borrowed which book?)
 
-::: code-group
-```sql [SQL]
+**SQL**
+
+```sql
 SELECT s.name, b.title
 FROM Students s
 JOIN BorrowedBooks bb
@@ -99,14 +105,16 @@ JOIN Books b
   ON b.book_id = bb.book_id;
 ```
 
+**Output**
 
-```txt [output]
+```txt
 Aditi   Database Systems
 Aditi   Calculus
 Rohan   Physics Basics
 Meera   Database Systems
 ```
-:::
+
+(Without an `ORDER BY` the order of the rows is not guaranteed, only the set of rows is.)
 
 👉🏻 `JOIN` combines rows from multiple tables using a related attribute, avoiding a Cartesian product.
 
@@ -114,8 +122,9 @@ Meera   Database Systems
 
 ### ❓ Find students who borrowed **Database Systems**
 
-::: code-group
-```sql [SQL]
+**SQL**
+
+```sql
 SELECT s.name
 FROM Students s
 JOIN BorrowedBooks bb
@@ -125,11 +134,12 @@ JOIN Books b
 WHERE b.title = 'Database Systems';
 ```
 
-```txt [output]
+**Output**
+
+```txt
 Aditi
 Meera
 ```
-:::
 
 👉🏻 `WHERE` can also be used with joined tables to filter results based on a condition.
 
@@ -137,30 +147,59 @@ Meera
 
 ### ❓ How many books has each student borrowed?
 
+**SQL**
+
 ```sql
 SELECT student_id, COUNT(*) AS books_borrowed
 FROM BorrowedBooks
-GROUP BY student_id;
-ORDER BY name ASC;
+GROUP BY student_id
+ORDER BY books_borrowed DESC, student_id;
 ```
-👉🏻 `GROUP BY` groups rows with the same value, aggregate functions COUNT compute a result per group.
-👉🏻 Orders final output alphabetically by value of "name" column
+
+**Output**
+
+```txt
+S101   2
+S102   1
+S103   1
+```
+
+👉🏻 `GROUP BY` groups rows with the same value, aggregate functions COUNT compute a result per group.<br>
+👉🏻 `ORDER BY` sorts the final output (here by the count, highest first, then by `student_id`). It must come **after** `GROUP BY` in the same statement: the `;` ends a query, and `ORDER BY` can only use columns that exist in the result or in the tables of the query (`BorrowedBooks` has no `name` column).
+
+To show names, join `Students` and sort alphabetically:
+
+```sql
+SELECT s.name, COUNT(*) AS books_borrowed
+FROM BorrowedBooks bb
+JOIN Students s
+  ON s.student_id = bb.student_id
+GROUP BY s.student_id, s.name
+ORDER BY s.name ASC;
+```
+
+```txt
+Aditi   2
+Meera   1
+Rohan   1
+```
 
 ### ❓ Students who borrowed **more than 1 book**
 
-::: code-group
-```sql [SQL]
+**SQL**
+
+```sql
 SELECT student_id, COUNT(*) AS books_borrowed
 FROM BorrowedBooks
 GROUP BY student_id
 HAVING COUNT(*) > 1;
 ```
 
+**Output**
 
-```txt [output]
+```txt
 S101   2
 ```
-:::
 
 👉🏻 `HAVING` filters groups after aggregation, while WHERE filters rows before grouping.
 

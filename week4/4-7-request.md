@@ -6,8 +6,8 @@ In flask, the `request` object is used to handle incoming HTTP requests. It prov
 - `request.args`: A MultiDict containing the query parameters from the URL (for GET requests).
 - `request.form`: A MultiDict containing the form data submitted in the body of a POST request.
 - `request.headers`: A dictionary-like object containing the headers of the request.
-- `request.get_json()`: Parses the JSON data sent in the request body and returns it as a Python dictionary.
-- `request.data`: Contains the raw data sent in the request body as a byte string.
+- `request.get_json()`: Parses the JSON data sent in the request body and returns it as a Python object (usually a dictionary, but a JSON list gives a list).
+- `request.data`: Contains the raw data sent in the request body as a byte string (empty for form submissions, because Flask has already parsed those into `request.form`).
 - `request.files`: A MultiDict containing the files uploaded in the request.
 
 Now we discuss each of the above attributes and methods in detail with examples.
@@ -96,17 +96,16 @@ In this example, when a user submits a form to the `/submit` route with fields `
 
 ## MultiDict Object and Accessing Multiple Values
 
-The `request.args` and `request.form` attributes return a MultiDict object, which allows us to access multiple values for the same key. This is particularly useful when dealing with form fields that can have multiple selections, such as checkboxes or multi-select dropdowns. 
+The `request.args` and `request.form` attributes return a MultiDict object (an immutable one), which allows us to access multiple values for the same key. This is particularly useful when dealing with form fields that can have multiple selections, such as checkboxes or multi-select dropdowns. 
 
-::: warning When accessing a key normally (using get() or []), Flask returns only the first value associated with that key, even if multiple values exist. We can access all values using the `getlist` method. 
+> [!WARNING]
+> When accessing a key normally (using `get()` or `[]`), Flask returns only the first value associated with that key, even if multiple values exist. We can access all values using the `getlist` method.
+>
+> We can also convert the MultiDict to a standard dictionary using `to_dict(flat=False)`.
+> For low-level inspection, we may read the raw request body using `request.get_data()`.
+> Though the recommended way is to use `getlist` method to access multiple values for a key.
 
-We can also convert the MultiDict to a standard dictionary using to_dict(flat=False).
-For low-level inspection, we may read the raw request body using request.stream.read().
-Though the recommended way is to use `getlist` method to access multiple values for a key.
-:::
-::: tabs
-
-== python code
+#### python code
 
 ```python
 from flask import Flask, request
@@ -142,7 +141,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-== terminal output
+#### terminal output
 
 When the form is submitted with multiple fruits selected, the mentioned code will print the data on terminal which will look similar to this:
 
@@ -150,15 +149,13 @@ When the form is submitted with multiple fruits selected, the mentioned code wil
 {'username': ['john_doe'], 'fruits': ['apple', 'cherry']}
 ```
 
-== browser output
+#### browser output
 
 When the form is submitted with multiple fruits selected, the browser will display the following output:
 
-```html
+```txt
 {'username': ['john_doe'], 'fruits': ['apple', 'cherry']}
 ```
-
-:::
 
 In this example, when the form is submitted, `request.form.to_dict(flat=False)` retrieves all form data as a dictionary where each key maps to a list of values. The `request.form.getlist('fruits')` method retrieves all selected values for the `fruits` field, allowing us to handle multiple selections effectively. The `username` field is accessed normally since it is a single value field.
 
@@ -184,7 +181,7 @@ In this example, when a user accesses the `/headers` route, the `request.headers
 
 ## request.get_json()
 
-The `request.get_json()` method is used to parse JSON data sent in the request body. It returns the parsed JSON data as a Python dictionary. This is particularly useful for handling API requests where data is often sent in JSON format.
+The `request.get_json()` method is used to parse JSON data sent in the request body. It returns the parsed JSON data as a Python object (a dictionary for a JSON object). This is particularly useful for handling API requests where data is often sent in JSON format.
 
 ```python
 from flask import Flask, request
@@ -203,11 +200,10 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-In this example, when a user sends a POST request to the `/json` route with JSON data in the body, the `request.get_json()` method parses the JSON and returns it as a Python dictionary. The `name` and `age` fields are then accessed from the dictionary and included in the response. This is essential for building RESTful APIs that communicate using JSON.
+In this example, when a user sends a POST request to the `/json` route with JSON data in the body, the `request.get_json()` method parses the JSON and returns it as a Python object (here a dictionary). The `name` and `age` fields are then accessed from the dictionary and included in the response. This is essential for building RESTful APIs that communicate using JSON.
 
-:::info `request.get_json()` 
-works only when the request’s Content-Type is set to application/json. If the Content-Type is different or the JSON is malformed, it will raise an error. To avoid this, we can use the silent=True parameter, which returns None instead of raising an error for invalid JSON.
-:::
+> [!NOTE]
+> **`request.get_json()`** works only when the request’s Content-Type is set to `application/json`. If the Content-Type is different Flask answers with **415 Unsupported Media Type**, and if the JSON is malformed with **400 Bad Request**. To avoid this, we can use the `silent=True` parameter, which returns `None` instead of raising an error in both cases.
 
 ## request.data
 
@@ -229,18 +225,15 @@ if __name__ == '__main__':
 
 In this example, when a user sends a POST request to the `/raw` route with raw data in the body, the `request.data` retrieves the raw byte string. The byte string is then decoded to UTF-8 for display in the response. This is useful for handling custom payloads or binary data in requests.
 
-:::info
-
-In most applications, we should prefer `request.form` or `request.get_json()` over `request.data`.
-
-:::
+> [!NOTE]
+> In most applications, we should prefer `request.form` or `request.get_json()` over `request.data`. `request.data` is only filled for content types Flask does not parse itself (e.g. `text/plain`, `application/octet-stream`): for a normal form post it is empty and the values are in `request.form`.
 
 ## request.files
 
 The `request.files` attribute is used to access files uploaded in the request. It returns a MultiDict containing the uploaded files, which can be accessed using the file field names.
 
 ```python
-from flask import Flask, request
+from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
 import os
 
@@ -254,7 +247,8 @@ def home():
         os.makedirs('uploads', exist_ok=True)  # Create uploads directory if it doesn't exist
         for file_key in files:
             file = files[file_key]
-            file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
+            if file.filename:  # an empty file field has an empty file name
+                file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
         return str(data_fields)  # Return form data as string for demonstration
     return render_template('index.html')
 
@@ -264,12 +258,12 @@ if __name__ == '__main__':
 
 In this example, when a user submits a form with file uploads, the `request.files` retrieves the uploaded files. Each file can be accessed using its field name, and the `save` method is used to save the uploaded files to a specified directory. The `secure_filename` function is used to ensure that the filenames are safe to use on the filesystem. This is essential for handling file uploads securely in web applications.
 
-:::details Try it yourself
+<details>
+<summary><b>Try it yourself</b></summary>
 
 Save the following HTML code as `index.html` in the `templates` folder of your Flask application. This form includes various input fields, including a file upload and a dropdown selection. When you submit the form, the Flask application will handle the request and process the form data accordingly.
 
 ```html
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -330,7 +324,8 @@ def home():
         os.makedirs('uploads', exist_ok=True)  # Create uploads directory if it doesn't exist
         for file_key in files:
             file = files[file_key]
-            file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
+            if file.filename:  # an empty file field has an empty file name
+                file.save(os.path.join('uploads', secure_filename(file.filename)))  # Save uploaded files
         return str(data_fields)  # Return form data as string for demonstration 
     elif request.method == 'GET':
         return render_template('index.html')
@@ -343,15 +338,15 @@ The directory structure should look like this:
 
 ```text
 week4/
-│├── app.py
-│└── templates/
-│    └── index.html
-|-uploads/  # This folder will be created automatically by the program to store uploaded files
+├── app.py
+├── templates/
+│   └── index.html
+└── uploads/    # created automatically by the program to store uploaded files
 ```
 
 Run the Flask application by executing `python app.py` in your terminal. Open your web browser and navigate to `http://127.0.0.1:5000/` to access the form. Fill out the form fields, select a file to upload, and submit the form. The application will process the form data and save the uploaded file to the `uploads` directory. The submitted form data will be displayed as a string in the browser.
 
-:::
+</details>
 
 ## Summary
 
@@ -362,5 +357,5 @@ In this section, we explored the `request` object in Flask, which is essential f
 
 ### Additional Resources
 
-- [Flask Request Documentation](https://flask.palletsprojects.com/en/2.3.x/api/#flask.Request)
-- [Werkzeug MultiDict Documentation](https://werkzeug.palletsprojects.com/en/2.3.x/datastructures/#werkzeug.datastructures.MultiDict)
+- [Flask Request Documentation](https://flask.palletsprojects.com/en/stable/api/#flask.Request)
+- [Werkzeug MultiDict Documentation](https://werkzeug.palletsprojects.com/en/stable/datastructures/#werkzeug.datastructures.MultiDict)

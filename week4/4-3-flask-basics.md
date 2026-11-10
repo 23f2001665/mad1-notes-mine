@@ -10,7 +10,7 @@ Flask is popular for several reasons:
 - **Flexibility**: Flask is unopinionated, allowing developers to choose their own tools and libraries.
 - **Extensibility**: Flask has a rich ecosystem of extensions that can add functionality such as database integration, form handling, authentication, and more.
 - **Lightweight**: Flask is minimalistic, providing only the essential features needed to build web applications, which helps keep the application lightweight and fast.
-- **Built-in Development Server**: Flask comes with a built-in development server that makes it easy to test and debug applications during development.
+- **Built-in Development Server**: Flask comes with a built-in development server that makes it easy to test and debug applications during development (it is not meant for production, where a WSGI server such as gunicorn is used).
 - **Jinja2 Templating**: Flask uses the Jinja2 templating engine, which allows for dynamic HTML generation and separation of logic from presentation.
 - **RESTful Request Handling**: Flask makes it easy to create RESTful APIs by providing tools for handling HTTP requests and responses.
 - **Strong Community Support**: Flask has a large and active community, which means there are plenty of resources, tutorials, and third-party libraries available.
@@ -21,23 +21,21 @@ Overall, Flask is a great choice for developers who want to build web applicatio
 
 To install Flask, we can use pip, the Python package manager. Open our terminal or command prompt and run the following command:
 
-:::code-group
+**On Windows** (Command Prompt; in PowerShell use `flask-env\Scripts\Activate.ps1`, see [virtual environments](../week0/0-basic-setup-guide.md#virtual-environments)):
 
-```
-bash[Windows]
+```bat
 python -m venv flask-env
 flask-env\Scripts\activate
 pip install Flask
 ```
 
-```
-bash[macOS/Linux]
+**On macOS and Linux:**
+
+```bash
 python3 -m venv flask-env
 source flask-env/bin/activate
 pip install Flask
 ```
-
-:::
 
 We should see output indicating that Flask has been successfully installed:
 
@@ -73,20 +71,20 @@ python app.py
 
 This will start the Flask development server, and we can access the application by navigating to `http://127.0.0.1:5000/` in our web browser.
 
-::: tabs
-== terminal
+#### In the terminal
 
 We will see output similar to this on our terminal:
+
 ![flask-running-server](../static/4-flask-running-server.png)
 
-== browser
+#### In the browser
 
 When we access the root URL, we should see "Hello, Flask!" displayed in our browser.
+
 ![flask-hello-world](../static/4-flask-hello-world.png)
 
-:::
-
-:::details Try it yourself
+<details>
+<summary><b>Try it yourself</b></summary>
 
 1. Create a new directory for your Flask application and navigate into it.
 2. Create a new file named `app.py` and copy the example code into it.
@@ -106,7 +104,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-:::
+</details>
 
 ## URL Structure and Parameters
 
@@ -143,7 +141,8 @@ Here `post_id` is defined as an integer so when a client types a value flask wil
 
 Similar to `int` flask supports other variable types like `float`, `path` (which accepts slashes), and `uuid` and the default type is `string`.
 
-:::details types-conversion of path parameters
+<details>
+<summary>types-conversion of path parameters</summary>
 
 There are several types of path parameters that Flask supports, each with its own conversion rules:
 
@@ -153,7 +152,7 @@ There are several types of path parameters that Flask supports, each with its ow
 - **path**: This type accepts any text including slashes (`/`). For example, `<path:subpath>` will match `/user/john/profile` and capture the entire path.
 - **uuid**: This type accepts UUID values. For example, `<uuid:task_id>` will match `/task/123e4567-e89b-12d3-a456-426614174000` but not `/task/invalid`.
 
-Different types of path parameters overload the same URL pattern and Flask will try to match them in the order they are defined. If a path parameter matches multiple types, Flask will use the first one that matches. For example, if we have the following routes:
+Different types of path parameters can be put on the same URL pattern. If a URL matches more than one of them, Flask (Werkzeug) does **not** use the order in which we wrote the decorators: the more specific converters (`int`, `float`) are tried before the general ones (`string`, `path`). For example, if we have the following routes:
 
 ```python
 @app.route('/item/<int:item_id>')
@@ -166,16 +165,30 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
+| URL | Response |
+|---|---|
+| `/item/5` | `Item ID: 5 type of <class 'int'>` |
+| `/item/1.5` | `Item ID: 1.5 type of <class 'float'>` |
+| `/item/abc` | `Item ID: abc type of <class 'str'>` |
+
+(`/item/5` is still an `int` if the `string` line is written first.) The `flask routes` command lists the rules of the application:
+
 ```bash
-user$ flask routes
-Endpoint         Methods  Rule
----------------- -------  ----------------------
-get_item_by_id   GET      /item/<int:item_id>
-get_item_by_id   GET      /item/<string:item_id>
-get_item_by_id   GET      /item/<float:item_id>
+flask --app app routes
 ```
 
-As we can observe, the endpoint with same variable `item_id` is overloaded with three different types and produced three different mapping.
+```txt
+Endpoint        Methods  Rule
+--------------  -------  -----------------------
+get_item_by_id  GET      /item/<float:item_id>
+get_item_by_id  GET      /item/<string:item_id>
+get_item_by_id  GET      /item/<int:item_id>
+static          GET      /static/<path:filename>
+```
+
+As we can observe, the endpoint with same variable `item_id` is overloaded with three different types and produced three different mapping (the order of the lines may differ between Flask versions). The extra `static` row is the built-in route for the `static` folder. `HEAD` and `OPTIONS` are handled automatically and are not listed.
+
+</details>
 
 ### Delimiters in URL
 
@@ -186,9 +199,10 @@ Flask recognises certain characters as delimiters in URLs. These characters are 
 - `?` (question mark): Indicates the start of query parameters in the URL.
 - `=` (equals sign): Used to assign values to query parameters.
 - `&` (ampersand): Used to separate multiple query parameters.
-- `+` (plus sign): Represents a space character in URL encoding.
+- `+` (plus sign): Represents a space character **inside the query string** (and form data): `?q=a+b` gives `a b`. In the path it is just a plus sign (`/user/a+b` gives `a+b`); a space is always written `%20`.
 
-:::details routing based on number of occurrences of `/`
+<details>
+<summary>routing based on number of occurrences of <code>/</code></summary>
 
 If we define a route without a trailing slash, Flask will not match URLs with a trailing slash to that route. For example:
 
@@ -206,13 +220,13 @@ def about():
     return "About Page"
 ```
 
-Now, accessing `/about` (without a trailing slash) will automatically redirect to `/about/`, and the route will be matched successfully.
+Now, accessing `/about` (without a trailing slash) will automatically redirect (HTTP status 308) to `/about/`, and the route will be matched successfully.
 
-More than one trailing slash: **Flask treats multiple trailing slashes as a single slash**. For example, accessing `/about///` will be treated the same as `/about/`.
+More than one trailing slash: **Flask merges repeated slashes into one**. For example, accessing `/about///` is redirected to `/about/`. (A route defined **without** a trailing slash does not match `/about//` at all: 404.)
 
 *This behavior is not very predictable in nature and it is generally recommended to use a single trailing slash for consistency and clarity in our URL design.*
 
-:::
+</details>
 
 ## Working of Flask(simplified)
 
@@ -222,7 +236,7 @@ More than one trailing slash: **Flask treats multiple trailing slashes as a sing
 2. **Server Processing**: The Flask server receives the request and processes it. It matches the requested URL to the defined routes in the application. If a match is found, the corresponding function (view function) is executed.
 
 3. **Response Generation**: The view function generates a response, which can be in the form of HTML, JSON, or a few other format. This response is then sent back to the client.<br>
-*Flask route functions must return a valid response type (usually a string or a Response object). Returning raw types like **integers** or **floats** are not allowed unless they are converted to strings or wrapped in a response.*
+*Flask route functions must return a valid response type: a string, a dict or list (converted to JSON), a tuple like `(body, status_code)`, or a Response object. Returning raw types like **integers** or **floats** is not allowed (Flask raises a `TypeError` and the client gets a 500 error) unless they are converted to strings or wrapped in a response.*
 
 ## Debug Mode
 
@@ -231,7 +245,7 @@ When running a Flask application in debug mode, the server provides additional f
 - **Automatic Reloading**: The server automatically reloads the application whenever it detects changes in the source code. This means we don't have to manually restart the server every time we make a change, which speeds up the development process.
 - **Detailed Error Messages**: If an error occurs in the application, Flask provides detailed error messages in the browser, including a traceback of the error. This helps developers quickly identify and fix issues in their code.
 - **Interactive Debugger**: Flask includes an interactive debugger that allows developers to inspect the state of the application at the point of an error. This can be very helpful for diagnosing complex issues.
-To enable debug mode, we can set the `debug` parameter to `True` when calling the `app.run()` method, as shown in the previous examples:
+To enable debug mode, we can set the `debug` parameter to `True` when calling the `app.run()` method, as shown in the previous examples (or start the server with `flask --app app run --debug`):
 
 ```python
 if __name__ == '__main__':
@@ -281,7 +295,8 @@ python app.py
 
 We can access the application by navigating to `http://127.0.0.1:5000/` for the home page and `http://127.0.0.1:5000/student/1` to get information about the student with ID 1.
 
-:::details Try it yourself
+<details>
+<summary><b>Try it yourself</b></summary>
 
 ```python
 from flask import Flask
@@ -302,9 +317,9 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-Here python list will be automatically converted to JSON format by Flask. In older Flask versions, lists had to be wrapped with jsonify() explicitly.
+Here python list will be automatically converted to JSON format by Flask. In older Flask versions (before 2.2), lists had to be wrapped with jsonify() explicitly.
 
-:::
+</details>
 
 ## Flask Application Structure
 

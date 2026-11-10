@@ -1,6 +1,6 @@
 # Template Rendering in Flask
 
-In web development, templates are used to separate the presentation layer (HTML/CSS) from the business logic (Python code). Flask uses [Jinja2](../week3/3-jinja2.md) as its default templating engine, allowing HTML templates to be rendered dynamically. This allows developers to create reusable HTML structures and populate them with data from the server.
+In web development, templates are used to separate the presentation layer (HTML/CSS) from the business logic (Python code). Flask uses [Jinja2](../week3/3-4-jinja2.md) as its default templating engine, allowing HTML templates to be rendered dynamically. This allows developers to create reusable HTML structures and populate them with data from the server.
 
 ## Setting Up Templates in Flask
 
@@ -8,9 +8,9 @@ To use templates in Flask, we need to create a folder named `templates` in the r
 
 ```text
 our_flask_app/
-│├── app.py
-│└── templates/
-│    └── index.html
+├── app.py
+└── templates/
+    └── index.html
 ```
 
 Alternatively, we can specify a different folder for templates by passing the `template_folder` parameter when creating the Flask app instance:
@@ -25,10 +25,10 @@ In addition to templates, we may also want to include static files such as CSS, 
 
 ```text
 our_flask_app/
-│├── app.py
-│├── static/
-││   ├── styles.css
-││   └── script.js
+├── app.py
+├── static/
+│   ├── styles.css
+│   └── script.js
 └── templates/
     └── index.html
 ```
@@ -39,17 +39,18 @@ We can change the static folder name by passing the `static_folder` parameter wh
 app = Flask(__name__, static_folder='my_static')
 ```
 
-:::info
+Note that the URL changes with the folder name: the files are now served under `/my_static/...`. Pass `static_url_path='/static'` as well to keep the `/static/...` URLs.
 
-**How to link static files in templates?**
-To link static files in our HTML templates, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
-
-```html
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-```
-
-The function url_for('static', filename='styles.css') generates the correct URL for the `styles.css` file located in the `static` folder. More about this function we will cover in the next module on flask features.
-:::
+> [!NOTE]
+> **How to link static files in templates?**
+>
+> To link static files in our HTML templates, we can use the `url_for` function provided by Flask. This function generates the appropriate URL for the static files. Here is an example of how to include a CSS file in our HTML template:
+>
+> ```html
+> <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+> ```
+>
+> The function url_for('static', filename='styles.css') generates the correct URL for the `styles.css` file located in the `static` folder. More about this function we will cover in the next module on flask features.
 
 ## Rendering Templates
 
@@ -59,7 +60,7 @@ Here is an example of a simple Flask application that uses templates:
 
 ```text
 our_flask_app/
-│├── app.py
+├── app.py
 └── templates/
     └── index.html
 ```
@@ -104,7 +105,7 @@ When we run this Flask application and navigate to `http://localhost:5000/`, we 
 
 ## Template Inheritance
 
-We have already conceptually covered template inheritance in the previous module on Jinja2 but we did not use it there because of Environment setup constraints. In Flask(render_template), the environment is already set up for us, so we can directly use template inheritance.
+We have already covered template inheritance in the previous module on Jinja2, where we had to give the Jinja2 environment a loader (`DictLoader`) to find `base.html`. In Flask (`render_template`) the environment is already set up for us with a loader that reads the files of the `templates` folder, so we can directly use template inheritance.
 
 Here is an example of how to use template inheritance in Flask:
 
@@ -112,7 +113,7 @@ Here is an example of how to use template inheritance in Flask:
 
 ```text
 our_flask_app/
-│├── app.py
+├── app.py
 └── templates/
     ├── base.html
     └── home.html
@@ -171,9 +172,8 @@ if __name__ == '__main__':
 
 This will generate a complete HTML page by combining `base.html` and `home.html`, resulting in the following HTML:
 
-<TemplateInheritanceViewer />
-
-::: details Explanation
+<details>
+<summary>Explanation</summary>
 
 ```html
 <!DOCTYPE html>
@@ -200,7 +200,7 @@ This will generate a complete HTML page by combining `base.html` and `home.html`
 
 This demonstrates how template inheritance can be effectively used in Flask applications to create a consistent layout across multiple pages while allowing for dynamic content for each page.
 
-:::
+</details>
 
 ## Static File Serving
 
@@ -210,9 +210,9 @@ Flask automatically serves static files from the `static` folder. So we can acce
 
 ```text
 our_flask_app/
-│├── app.py
+├── app.py
 ├── static/
-││   └── styles.css
+│   └── styles.css
 └── templates/
     └── index.html
 ```
@@ -251,16 +251,19 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
+> [!CAUTION]
+> Flask escapes the values we pass (`{{ title }}`) for `render_template_string` and for `.html` templates. But never pass **text written by a user** as the template itself (`render_template_string(user_text)`): a template can reach Python objects, which is a security hole (server-side template injection, see the [Jinja2 page](../week3/3-4-jinja2.md#autoescaping-html-safety)). User input should only ever be passed as data.
+
 ## Summary
 
 Flask's templating system, powered by Jinja2, provides a powerful way to create dynamic web pages by separating the presentation layer from the business logic. By using templates, we can create reusable HTML structures, include static files, and implement template inheritance to maintain a consistent layout across our web application.
 
-If we are not familiar with Jinja2 templating syntax, it is recommended to review the [Jinja2 page](../week3/3-jinja2.md) to understand the various features and capabilities it offers.
+If we are not familiar with Jinja2 templating syntax, it is recommended to review the [Jinja2 page](../week3/3-4-jinja2.md) to understand the various features and capabilities it offers.
 
 In the next module, we will explore how to handle forms and user input in Flask applications.
 
 ### Additional resources:
 
-- [Flask Documentation - Templating](https://flask.palletsprojects.com/en/2.3.x/templating/)
-- [Jinja2 Documentation](https://jinja.palletsprojects.com/en/3.1.x/)
-- [HTTP status codes](../week1/1-network-history-TCP.md#status-codes)
+- [Flask Documentation - Templating](https://flask.palletsprojects.com/en/stable/templating/)
+- [Jinja2 Documentation](https://jinja.palletsprojects.com/en/stable/)
+- [HTTP status codes](../week1/1-3-network-history-TCP.md#status-codes)
