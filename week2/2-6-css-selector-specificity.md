@@ -276,6 +276,9 @@ If specificity is equal, the rule written later in the CSS wins.
 
 
 ### Margins, height, width, padding
+> [!TIP]
+> This is only a quick overview. The full picture (content / padding / border / margin, `box-sizing`, margin collapsing, `margin: auto`, inline vs block boxes) is in [The CSS Box Model](2-8-css-box-model.md).
+
 1. **Margin** is the space *outside* the border (between the element and its neighbours)
 2. Padding is used to generate space around an element's content (inside borders).
 3. **height**

@@ -312,6 +312,72 @@ const fs = require('fs');
     await page.setContent(doc(`<style>${c.css}</style>${c.html}`));
     R.cases.push(await page.evaluate(() => getComputedStyle(document.querySelector('p')).color));
   }
+  // --- 2-8 the CSS box model
+  const dims = id => { const e = document.getElementById(id), cs = getComputedStyle(e), r = e.getBoundingClientRect();
+    return { offsetW: e.offsetWidth, offsetH: e.offsetHeight, clientW: e.clientWidth, clientH: e.clientHeight, csW: cs.width, csH: cs.height, rectW: r.width, rectH: r.height, left: r.left, top: r.top, bottom: r.bottom, boxSizing: cs.boxSizing,
+             mL: parseFloat(cs.marginLeft), mR: parseFloat(cs.marginRight), mT: parseFloat(cs.marginTop), mB: parseFloat(cs.marginBottom) }; };
+  const gap = () => { const a = document.getElementById('a').getBoundingClientRect(), b = document.getElementById('b').getBoundingClientRect(); return b.top - a.bottom; };
+  const main = 'width:200px;height:100px;padding:30px;border:20px solid #333;margin:40px;';
+  await run('bx_content', doc('<div id=a style="' + main + '"></div>'), dims, 'a');
+  await run('bx_border', doc('<div id=a style="box-sizing:border-box;width:300px;height:200px;padding:30px;border:20px solid #333;margin:40px"></div>'), dims, 'a');
+  await run('bx_inherit', doc('<div style="box-sizing:border-box"><div id=c></div></div>'), () => getComputedStyle(document.getElementById('c')).boxSizing);
+  await run('bx_default', doc('<div id=a></div>'), () => getComputedStyle(document.getElementById('a')).boxSizing);
+  const par = '<div style="width:400px"><div id=c style="width:100%;padding:20px;border:5px solid"></div></div>';
+  await run('bx_w100_content', doc(par), dims, 'c');
+  await run('bx_w100_border', doc(par.replace('id=c style="', 'id=c style="box-sizing:border-box;')), dims, 'c');
+  const auto = '<div style="width:400px"><div id=c style="padding:20px;border:5px solid;margin:0 10px"></div></div>';
+  await run('bx_auto_content', doc(auto), dims, 'c');
+  await run('bx_auto_border', doc(auto.replace('id=c style="', 'id=c style="box-sizing:border-box;')), dims, 'c');
+  await run('bx_max_content', doc('<div id=a style="max-width:100px;padding:20px;border:5px solid"></div>'), dims, 'a');
+  await run('bx_max_border', doc('<div id=a style="box-sizing:border-box;max-width:100px;padding:20px;border:5px solid"></div>'), dims, 'a');
+  await run('bx_minmax', doc('<div id=a style="width:500px;max-width:100px;min-width:300px"></div>'), dims, 'a');
+  await run('bx_clamp', doc('<div id=a style="box-sizing:border-box;width:20px;padding:30px"></div>'), dims, 'a');
+  await run('bx_calc', doc('<div style="width:400px"><div id=c style="width:calc(100% - 2*20px - 2*5px);padding:20px;border:5px solid"></div></div>'), dims, 'c');
+  await run('bx_reset', doc('<div id=a style="padding:20px;border:5px solid;width:100px"></div>', '<style>*,*::before,*::after{box-sizing:border-box}</style>'), dims, 'a');
+  await run('bx_pct_width', doc('<div style="width:400px"><div id=c style="width:50%;padding:20px;border:5px solid"></div></div>'), dims, 'c');
+  await run('bx_height_pct', doc('<div style="width:200px"><div id=c style="height:50%"><div style="height:60px"></div></div></div><div style="width:200px;height:200px"><div id=d style="height:50%"></div></div>'), () => [document.getElementById('c').offsetHeight, document.getElementById('d').offsetHeight]);
+  await run('bx_shorthand', doc('<div id=a></div>'), () => { const e = document.getElementById('a'); const out = {}; for (const v of ['10px', '10px 20px', '10px 20px 30px', '10px 20px 30px 40px']) { e.style.padding = v; e.style.margin = v; const cs = getComputedStyle(e); out[v] = [[cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].join(' '), [cs.marginTop, cs.marginRight, cs.marginBottom, cs.marginLeft].join(' ')]; } return out; });
+  await run('bx_supports', doc(''), () => ({ negPadding: CSS.supports('padding', '-5px'), negMargin: CSS.supports('margin', '-5px'), negBorder: CSS.supports('border-width', '-1px'),
+    logical: [CSS.supports('margin-inline', '10px'), CSS.supports('padding-block', '10px')], sides: ['padding-top', 'margin-left', 'border-bottom'].map(p => CSS.supports(p, '1px')) }));
+  await run('bx_border_facts', doc('<div id=a style="border-width:5px;border-color:red"></div><div id=b style="border:5px solid"></div><div id=c style="border-style:solid"></div><div id=d style="border:1px solid;color:rgb(255,0,0)"></div><div id=e style="width:100px;height:100px;border-radius:50%;padding:10px"></div>'),
+    () => { const g = id => getComputedStyle(document.getElementById(id)); return { noStyle: [g('a').borderTopStyle, g('a').borderTopWidth], solid: g('b').borderTopWidth, medium: g('c').borderTopWidth, color: g('d').borderTopColor, radiusBox: [document.getElementById('e').offsetWidth, document.getElementById('e').offsetHeight], bgClip: g('a').backgroundClip }; });
+  await run('bx_pct', doc('<div style="width:400px;height:900px"><div id=c style="padding:10%;margin:10%"></div></div>'), () => { const cs = getComputedStyle(document.getElementById('c')); return { padding: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft], margin: [cs.marginTop, cs.marginRight, cs.marginBottom, cs.marginLeft] }; });
+  await run('bx_neg_margin', doc('<div style="width:300px;margin-left:100px"><div id=c style="margin-left:-40px;height:20px"></div></div><div id=a style="height:50px"></div><div id=b style="margin-top:-20px;height:50px"></div>'),
+    () => { const r = document.getElementById('c').getBoundingClientRect(); return { left: r.left, width: r.width, pullTop: document.getElementById('b').getBoundingClientRect().top - document.getElementById('a').getBoundingClientRect().top }; });
+  await run('bx_auto_margin', doc('<div style="width:1000px"><div id=a style="width:200px;margin:0 auto"></div><div id=b style="margin:0 auto"></div><div id=c style="width:200px;height:50px;margin:auto"></div></div><div style="display:flex;height:200px;width:1000px"><div id=f style="margin:auto;width:50px;height:50px"></div></div>'),
+    () => { const cs = id => getComputedStyle(document.getElementById(id)); const f = document.getElementById('f').getBoundingClientRect(); return { centered: [cs('a').marginLeft, cs('a').marginRight], noWidth: [cs('b').marginLeft, cs('b').marginRight], vertical: [cs('c').marginTop, cs('c').marginBottom], flex: [f.left, f.top - document.getElementById('f').parentElement.getBoundingClientRect().top] }; });
+  const sib = (m1, m2) => doc(`<div id=a style="height:50px;margin-bottom:${m1}"></div><div id=b style="height:50px;margin-top:${m2}"></div>`);
+  await run('bx_c_20_30', sib('20px', '30px'), gap); await run('bx_c_30_30', sib('30px', '30px'), gap); await run('bx_c_30_neg10', sib('30px', '-10px'), gap); await run('bx_c_neg10_neg30', sib('-10px', '-30px'), gap);
+  await run('bx_c_25_neg10', sib('25px', '-10px'), gap); await run('bx_c_25_10', sib('25px', '10px'), gap);
+  await run('bx_c_flex', doc('<div style="display:flex;flex-direction:column"><div id=a style="height:50px;margin-bottom:20px"></div><div id=b style="height:50px;margin-top:30px"></div></div>'), gap);
+  await run('bx_c_grid', doc('<div style="display:grid"><div id=a style="height:50px;margin-bottom:20px"></div><div id=b style="height:50px;margin-top:30px"></div></div>'), gap);
+  await run('bx_c_float', doc('<div id=a style="float:left;clear:both;width:100px;height:50px;margin-bottom:20px"></div><div id=b style="float:left;clear:both;width:100px;height:50px;margin-top:30px"></div>'), gap);
+  await run('bx_c_abs', doc('<div style="position:relative;height:300px"><div id=a style="position:absolute;top:0;height:50px;width:50px;margin-bottom:40px"></div><div id=b style="position:absolute;top:50px;height:50px;width:50px;margin-top:30px"></div></div>'), gap);
+  await run('bx_c_horizontal', doc('<div id=a style="display:inline-block;width:50px;height:20px;margin-right:20px"></div><div id=b style="display:inline-block;width:50px;height:20px;margin-left:30px"></div>'), () => document.getElementById('b').getBoundingClientRect().left - document.getElementById('a').getBoundingClientRect().right);
+  await run('bx_c_empty', doc('<div id=a style="height:50px;margin-bottom:20px"></div><div style="margin-top:10px;margin-bottom:30px"></div><div id=b style="height:50px;margin-top:5px"></div>'), gap);
+  const pc = css => doc('<div id=p style="' + css + '"><div id=c style="margin-top:40px;height:50px"></div></div>');
+  const pcJs = () => { const p = document.getElementById('p').getBoundingClientRect(), c = document.getElementById('c').getBoundingClientRect(); return [p.top, c.top, p.height]; };
+  for (const [n, css] of [['plain', ''], ['padding', 'padding-top:1px'], ['border', 'border-top:1px solid'], ['overflow', 'overflow:hidden'], ['flowroot', 'display:flow-root'], ['flex', 'display:flex']]) await run('bx_pc_' + n, pc(css), pcJs);
+  await run('bx_inline', doc('<p style="margin:0;line-height:20px">text <span id=s style="margin:50px 30px;padding:40px 10px;background:red">inline</span> text</p><p id=n style="margin:0">next</p><p style="margin:0;line-height:20px">t <span id=b2 style="border:20px solid red">x</span> t</p><p id=n2 style="margin:0">n</p>'),
+    () => { const s = document.getElementById('s'); const p = s.parentElement.getBoundingClientRect(); return { paddingPaints: s.getClientRects()[0].height > 80, paraH: p.height, nextTop: document.getElementById('n').getBoundingClientRect().top, marginLeft: getComputedStyle(s).marginLeft, borderNextGap: document.getElementById('n2').getBoundingClientRect().top - document.getElementById('b2').parentElement.getBoundingClientRect().top }; });
+  await run('bx_block_inline_block', doc('<span id=i style="width:100px;height:50px;display:inline">x</span><span id=ib style="display:inline-block;width:100px;height:50px;margin:10px 0;padding:5px">x</span>'),
+    () => { const g = id => document.getElementById(id).getBoundingClientRect(); return { inlineW: g('i').width, inlineBlock: [g('ib').width, g('ib').height] }; });
+  await run('bx_overflow', doc('<div id=a style="width:100px;height:50px"><div style="width:300px;height:200px"></div></div><div id=b style="width:100px;height:50px;overflow:hidden"><div style="width:300px;height:200px"></div></div>'),
+    () => { const g = id => { const e = document.getElementById(id); return { offH: e.offsetHeight, scrollW: e.scrollWidth, scrollH: e.scrollHeight }; }; return { visible: g('a'), hidden: g('b') }; });
+  await run('bx_outline', doc('<div id=a style="width:100px;height:50px;border:5px solid;outline:10px solid red;box-shadow:0 0 0 15px blue"></div><div id=b style="height:10px"></div>'), () => ({ offsetW: document.getElementById('a').offsetWidth, nextTop: document.getElementById('b').getBoundingClientRect().top }));
+  await run('bx_ua', '<!DOCTYPE html><html><body><h1 id=h>t</h1><p id=p>p</p><ul id=u><li>x</li></ul><ol id=o><li>x</li></ol><div id=d></div></body></html>',
+    () => { const g = (id, p) => getComputedStyle(document.getElementById(id))[p]; return { body: [getComputedStyle(document.body).marginTop, getComputedStyle(document.body).marginLeft], p: [g('p', 'marginTop'), g('p', 'marginBottom')], h1: g('h', 'marginTop'), ul: [g('u', 'paddingLeft'), g('u', 'marginTop')], ol: g('o', 'paddingLeft'), div: [g('d', 'marginTop'), g('d', 'paddingTop')] }; });
+  const measureAll = () => Object.fromEntries([...document.querySelectorAll('[id]')].map(e => { const cs = getComputedStyle(e), r = e.getBoundingClientRect();
+      return [e.id, { offW: e.offsetWidth, offH: e.offsetHeight, contentW: parseFloat(cs.width) - (cs.boxSizing === 'border-box' ? parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth) : 0),
+        contentH: parseFloat(cs.height) - (cs.boxSizing === 'border-box' ? parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth) : 0),
+        marginW: e.offsetWidth + parseFloat(cs.marginLeft) + parseFloat(cs.marginRight), marginH: e.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom), top: r.top, bottom: r.bottom }]; }));
+  R.bx_exercises = []; R.bx_exercises_bb = [];
+  for (const ex of (input.box || [])) {
+    await page.setContent(doc(ex.html, `<style>${ex.css}</style>`)); R.bx_exercises.push(await page.evaluate(measureAll));
+    await page.setContent(doc(ex.html, `<style>${ex.css}*,*::before,*::after{box-sizing:border-box}</style>`)); R.bx_exercises_bb.push(await page.evaluate(measureAll));
+  }
+  if (input.diagram) { await page.setContent(doc(input.diagram.html, `<style>${input.diagram.css}</style>`)); R.bx_diagram = await page.evaluate(() => { const b = document.querySelector('.box'), w = document.getElementById('diagram'); return { boxW: b.offsetWidth, boxH: b.offsetHeight, wrapW: w.offsetWidth, wrapH: w.offsetHeight, contentW: parseFloat(getComputedStyle(b).width), contentH: parseFloat(getComputedStyle(b).height) }; }); }
+  if (input.pic) { await page.setContent(doc(input.pic.html, `<style>${input.pic.css}</style>`)); R.bx_pic = await page.evaluate(() => ({ cb: document.querySelector('.cb').offsetWidth, bb: document.querySelector('.bb').offsetWidth, bbContentW: document.querySelector('.bb').clientWidth - 60 })); }
   // --- screenshots of the notes' own HTML (so GitHub shows exactly what a browser renders)
   for (const sh of (input.shots || [])) {
     const p2 = await b.newPage({ viewport: { width: sh.width, height: 10 }, deviceScaleFactor: 2 });
@@ -365,6 +431,35 @@ def case_examples():
     return out
 
 
+BX = "2-8-css-box-model.md"
+
+PIC_CSS = (".row{display:flex;gap:24px;align-items:flex-start}.cell{font:12px/1.4 -apple-system,'Segoe UI',Helvetica,Arial,sans-serif}.cell p{margin:6px 0 0}"
+           ".b{width:200px;padding:30px;border:20px solid #ffd966;background:linear-gradient(#9fc5e8,#9fc5e8) content-box,#b6d7a8;line-height:24px;text-align:center;font:12px/24px sans-serif}"
+           ".cb{box-sizing:content-box}.bb{box-sizing:border-box}")
+PIC_HTML = ('<div class="row"><div class="cell"><div class="b cb">content</div><p>box-sizing: content-box<br><b>width: 200px</b> &rarr; drawn <b>300px</b> wide</p></div>'
+            '<div class="cell"><div class="b bb">content</div><p>box-sizing: border-box<br><b>width: 200px</b> &rarr; drawn <b>200px</b> wide</p></div></div>')
+
+
+def box_inputs():
+    """The pieces of 2-8 that the browser has to render: the diagram, the exercises, the sizing picture."""
+    try:
+        t = note(BX)
+    except FileNotFoundError:
+        return {"diagram": None, "exercises": [], "pic": {"html": "<div class=row></div>", "css": ""}}
+    css_blocks = blocks(t, {"css"})
+    html_blocks = blocks(t, {"html"})
+    dia_css = [b for _, b in css_blocks if b.lstrip().startswith("/* diagram */")]
+    dia_html = [b for _, b in html_blocks if 'id="diagram"' in b]
+    exercises = []
+    for part in re.split(r"^#### Exercise ", t, flags=re.M)[1:]:
+        part = part.split("\n## ", 1)[0]
+        css, html = blocks(part, {"css"}), blocks(part, {"html"})
+        if css and html:
+            exercises.append({"css": css[0][1], "html": html[0][1]})
+    return {"diagram": {"css": dia_css[0], "html": dia_html[0]} if dia_css and dia_html else None, "exercises": exercises,
+            "pic": {"html": PIC_HTML, "css": PIC_CSS}}
+
+
 def run_browser():
     node = shutil.which("node")
     if not node:
@@ -379,7 +474,13 @@ def run_browser():
             shots = [{"html": fmt, "path": str(ROOT / "static" / "html-text-formatting.png"), "width": 360, "css": "p{margin:0 0 4px}"},
                      {"html": visualizer, "path": str(ROOT / "static" / "html-block-inline.png"), "width": 360,
                       "css": "span,em,strong,a{outline:1px dashed #d33}div,p{outline:1px solid #36c}#wrap{margin:4px 0 4px 4px}"}]
-        Path(d, "in.json").write_text(json.dumps({"visualizer": visualizer, "css": css_items(), "shots": shots, "cases": case_examples()}))
+        box_in = box_inputs()
+        if os.environ.get("MAKE_SHOT") and box_in["diagram"]:
+            shots += [{"html": box_in["diagram"]["html"], "path": str(ROOT / "static" / "css-box-model.png"), "width": 405,
+                       "css": box_in["diagram"]["css"] + "span{font:12px/1.2 -apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#222}"},
+                      {"html": box_in["pic"]["html"], "path": str(ROOT / "static" / "css-box-sizing.png"), "width": 590, "css": box_in["pic"]["css"]}]
+        Path(d, "in.json").write_text(json.dumps({"visualizer": visualizer, "css": css_items(), "shots": shots, "cases": case_examples(),
+                                                  "box": box_in["exercises"], "diagram": box_in["diagram"], "pic": box_in["pic"]}))
         Path(d, "b.js").write_text(BROWSER_JS)
         env = dict(os.environ, NODE_PATH=subprocess.run(["npm", "root", "-g"], capture_output=True, text=True).stdout.strip())
         p = subprocess.run([node, str(Path(d, "b.js")), str(Path(d, "in.json"))], capture_output=True, text=True, env=env, timeout=240)
@@ -604,6 +705,118 @@ def structural_pseudo(B):
     return ok, f"li:first-child {B['first_child']}, :last-child {B['last_child']}, :nth-child(odd) {B['nth_odd']}, :nth-last-child(1) {B['nth_last']}, article p:first-of-type {B['first_of_type']}, :only-child {B['only_child']}"
 
 
+def box_sizes(B):
+    c, b, d, p = B["bx_content"], B["bx_border"], B.get("bx_diagram"), B["bx_pic"]
+    t = note(BX)
+    ok = (c["offsetW"] == 300 and c["offsetH"] == 200 and c["clientW"] == 260 and c["clientH"] == 160 and c["csW"] == "200px" and c["rectW"] == 300
+          and c["offsetW"] + c["mL"] + c["mR"] == 380 and c["offsetH"] + c["mT"] + c["mB"] == 280
+          and b["offsetW"] == 300 and b["offsetH"] == 200 and b["csW"] == "300px" and b["clientW"] == 260
+          and d is not None and (d["boxW"], d["boxH"], d["wrapW"], d["wrapH"], d["contentW"], d["contentH"]) == (300, 200, 380, 280, 200, 100)
+          and p["cb"] == 300 and p["bb"] == 200 and p["bbContentW"] == 100)
+    good = (has(t, r"\| Content box \| 200px \| 100px \|") and has(t, r"\| Padding box \(content \+ padding\) \| 260px \| 160px \|") and has(t, r"\*\*300px\*\* \| \*\*200px\*\*")
+            and has(t, r"Margin box \(the space it takes in the layout\) \| 380px \| 280px") and has(t, r"= 300\\text\{px\}") and has(t, r"`\"200px\"` \(and `\"300px\"` for the `border-box` version")
+            and has(t, r"`el\.clientWidth` \| content \+ padding \(without border and scrollbar\) \| `260`") and has(t, r"`el\.offsetWidth` \| content \+ padding \+ border \(the border box\) \| `300`")
+            and has(t, r"drawn `300px` wide|it is 300px wide") and has(t, r"drawn `200px` wide|`200px` wide with a content of `100px`"))
+    return ok and good, (f"the note's example (content 200x100, padding 30, border 20, margin 40): offsetWidth/Height {c['offsetW']}x{c['offsetH']}, clientWidth {c['clientW']}, computed width {c['csW']}, "
+                         f"margin box {c['offsetW'] + c['mL'] + c['mR']:.0f}x{c['offsetH'] + c['mT'] + c['mB']:.0f}; the border-box version width:300px;height:200px is the same box (computed width {b['csW']}); "
+                         f"the picture's real element measures {d and (d['boxW'], d['boxH'])} with a margin wrapper {d and (d['wrapW'], d['wrapH'])}; the box-sizing picture: content-box {p['cb']}px vs border-box {p['bb']}px (content {p['bbContentW']}px); "
+                         f"every number of the note's tables is right: {good}")
+
+
+def box_sizing_table(B):
+    t = note(BX)
+    cw, bw = B["bx_w100_content"], B["bx_w100_border"]
+    ac, ab = B["bx_auto_content"], B["bx_auto_border"]
+    mc, mb = B["bx_max_content"], B["bx_max_border"]
+    ok = (cw["offsetW"] == 450 and bw["offsetW"] == 400 and ac["offsetW"] == 380 and ac["csW"] == "330px" and ab["offsetW"] == 380 and mc["offsetW"] == 150 and mb["offsetW"] == 100
+          and B["bx_minmax"]["offsetW"] == 300 and B["bx_clamp"]["offsetW"] == 60 and B["bx_calc"]["offsetW"] == 400 and B["bx_inherit"] == "content-box" and B["bx_default"] == "content-box"
+          and B["bx_reset"]["boxSizing"] == "border-box" and B["bx_reset"]["offsetW"] == 100 and B["bx_pct_width"]["offsetW"] == 250 and B["bx_pct_width"]["csW"] == "200px")
+    hp = B["bx_height_pct"]
+    good = (has(t, r"\*\*450px\*\* \(overflows by 50px\) \| 400px") and has(t, r"380px \(content 330px\) \| 380px") and has(t, r"\| 150px \| 100px \|") and has(t, r"drawn `60px` wide")
+            and has(t, r"if `min-width` and `max-width` disagree, `min-width` wins") and has(t, r"not inherited") and has(t, r"calc\(100% - 2 \* 20px - 2 \* 5px\)") and has(t, r"only works if the parent has a definite height")
+            and has(t, r"box-sizing: border-box;\s*\n\}"))
+    return ok and hp == [60, 100] and good, (
+        f"child of a 400px parent: width:100% + padding 20 + border 5 -> content-box {cw['offsetW']}px (overflow), border-box {bw['offsetW']}px; width:auto with margin 0 10px -> {ac['offsetW']}px (content {ac['csW']}) in both modes; "
+        f"max-width:100px -> {mc['offsetW']}px vs {mb['offsetW']}px; min-width 300 beats max-width 100 beats width 500 -> {B['bx_minmax']['offsetW']}px; border-box width:20px + padding 30 -> {B['bx_clamp']['offsetW']}px; calc() -> {B['bx_calc']['offsetW']}px; "
+        f"box-sizing is not inherited ({B['bx_inherit']}) and defaults to {B['bx_default']}; the * reset gives {B['bx_reset']['boxSizing']}; width:50% = {B['bx_pct_width']['csW']} content; height:50% -> {hp} (auto parent: ignored, definite parent: 100); note says so: {good}")
+
+
+def box_layers(B):
+    t = note(BX)
+    sh = B["bx_shorthand"]
+    sup = B["bx_supports"]
+    bf = B["bx_border_facts"]
+    pc, nm, am = B["bx_pct"], B["bx_neg_margin"], B["bx_auto_margin"]
+    ok = (sh["10px"][0] == "10px 10px 10px 10px" and sh["10px 20px"][0] == "10px 20px 10px 20px" and sh["10px 20px 30px"][0] == "10px 20px 30px 20px" and sh["10px 20px 30px 40px"][0] == "10px 20px 30px 40px"
+          and all(v[0] == v[1] for v in sh.values()) and sup["negPadding"] is False and sup["negMargin"] is True and sup["negBorder"] is False and sup["logical"] == [True, True] and all(sup["sides"])
+          and bf["noStyle"] == ["none", "0px"] and bf["solid"] == "5px" and bf["medium"] == "3px" and bf["color"] == "rgb(255, 0, 0)" and bf["radiusBox"] == [120, 120] and bf["bgClip"] == "border-box"
+          and pc["padding"] == ["40px"] * 4 and pc["margin"] == ["40px"] * 4 and nm["left"] == 60 and nm["width"] == 340 and nm["pullTop"] == 30
+          and am["centered"] == ["400px", "400px"] and am["noWidth"] == ["0px", "0px"] and am["vertical"] == ["0px", "0px"] and am["flex"] == [475, 75])
+    good = (has(t, r"`padding: 10px 20px 30px` \| 10px \| 20px \| 30px \| 20px") and has(t, r"clockwise, starting at the top") and has(t, r"`padding: -5px` is invalid") and has(t, r"A border without a `border-style` is not drawn, and has no width")
+            and has(t, r"`medium`, which is `3px`") and has(t, r"`currentcolor`") and has(t, r"stays `120px`") and has(t, r"`padding: 10%` is 40px on the top, right, bottom \*\*and\*\* left") and has(t, r"a `200px` wide box gets `400px` on each side")
+            and has(t, r"Inside a \*\*flex container\*\* `margin: auto` does centre the box on both axes") and has(t, r"`margin-top: -20px` the box moves 20px up") and has(t, r"background-clip: border-box"))
+    return ok and good, (
+        f"shorthand 1-4 values (top right bottom left) for padding and margin ({sh['10px 20px 30px'][0]!r} for three values); negative padding invalid ({not sup['negPadding']}), negative margin valid ({sup['negMargin']}); "
+        f"border-width:5px without a style computes to {bf['noStyle']}, default width with a style {bf['medium']}, default colour = the text colour; border-radius leaves the 100px+2x10px box at {bf['radiusBox']}; background-clip {bf['bgClip']}; "
+        f"padding:10% / margin:10% of a 400px parent are {pc['padding'][0]} on every side; margin-left:-40px -> left edge {nm['left']}, width grows to {nm['width']}; margin-top:-20px pulls the next box up by {50 - nm['pullTop']}px; "
+        f"margin:0 auto -> {am['centered']}, without width {am['noWidth']}, margin:auto vertical {am['vertical']}, in a flex container the box is centred at {am['flex']}; note says all of this: {good}")
+
+
+def box_margin_collapse(B):
+    t = note(BX)
+    gaps = (B["bx_c_20_30"], B["bx_c_30_30"], B["bx_c_30_neg10"], B["bx_c_neg10_neg30"], B["bx_c_25_neg10"], B["bx_c_25_10"])
+    add = (B["bx_c_flex"], B["bx_c_grid"], B["bx_c_float"], B["bx_c_horizontal"])
+    pcs = {n: B["bx_pc_" + n] for n in ("plain", "padding", "border", "overflow", "flowroot", "flex")}
+    ok = (gaps == (30, 30, 20, -30, 15, 25) and add == (50, 50, 50, 50) and B["bx_c_abs"] == 30 and B["bx_c_empty"] == 30
+          and pcs["plain"] == [40, 40, 50] and pcs["padding"] == [0, 41, 91] and pcs["border"] == [0, 41, 91] and pcs["overflow"] == [0, 40, 90] and pcs["flowroot"] == [0, 40, 90] and pcs["flex"] == [0, 40, 90])
+    good = (has(t, r"`margin-bottom: 20px` above `margin-top: 30px` \| \*\*30px\*\*") and has(t, r"`30px` above `-10px` \| \*\*20px\*\*") and has(t, r"`-10px` above `-30px` \| \*\*-30px\*\*")
+            and has(t, r"\*\*flex items\*\*, grid items or floats \| they \*\*add up\*\* \(50px\)") and has(t, r"absolutely positioned boxes never collapse either") and has(t, r"only vertical margins collapse")
+            and has(t, r"\(30px for 20, 10, 30, 5\)") and has(t, r"\| \*\(nothing\)\* \| 40px \(pushed down\) \| 40px \(same place\) \| 50px \|") and has(t, r"\| `padding-top: 1px` or `border-top: 1px solid` \| 0px \| 41px \(margin is inside\) \| 91px \|")
+            and has(t, r"\| `overflow: hidden` \| 0px \| 40px \| 90px \|") and has(t, r"\| `display: flow-root` \| 0px \| 40px \| 90px \|") and has(t, r"\| `display: flex` \| 0px \| 40px \| 90px \|"))
+    return ok and good, (
+        f"gap between two blocks: 20/30 -> {gaps[0]}, 30/30 -> {gaps[1]}, 30/-10 -> {gaps[2]}, -10/-30 -> {gaps[3]}, 25/-10 -> {gaps[4]}, 25/10 -> {gaps[5]}; flex, grid, floats and left/right margins add up -> {add}; absolutely positioned (margin-bottom 40 above margin-top 30, b at top:50px): gap {B['bx_c_abs']} = only b's own margin, the neighbour's margin is ignored; "
+        f"empty block between 20, (10, 30), 5 -> {B['bx_c_empty']}; parent + first child (margin-top 40) [parent top, child top, parent height]: plain {pcs['plain']}, padding {pcs['padding']}, border {pcs['border']}, overflow:hidden {pcs['overflow']}, flow-root {pcs['flowroot']}, flex {pcs['flex']}; every row of the note's tables is right: {good}")
+
+
+def box_display_overflow_defaults(B):
+    t = note(BX)
+    il, bi, ov, ou, ua = B["bx_inline"], B["bx_block_inline_block"], B["bx_overflow"], B["bx_outline"], B["bx_ua"]
+    ok = (il["paddingPaints"] and il["paraH"] == 20 and il["nextTop"] == 20 and il["marginLeft"] == "30px" and il["borderNextGap"] == 20 and bi["inlineW"] < 100 and bi["inlineBlock"] == [110, 60]
+          and ov["visible"]["scrollW"] == 300 and ov["visible"]["scrollH"] == 200 and ov["hidden"]["scrollW"] == 300 and ov["hidden"]["scrollH"] == 200 and ov["hidden"]["offH"] == 50
+          and ou["offsetW"] == 110 and ou["nextTop"] == 60
+          and ua["body"] == ["8px", "8px"] and ua["p"] == ["16px", "16px"] and abs(float(ua["h1"][:-2]) - 21.44) < 0.01 and ua["ul"] == ["40px", "16px"] and ua["ol"] == "40px" and ua["div"] == ["0px", "0px"])
+    good = (has(t, r"the paragraph stays `20px` tall and the next paragraph starts right below it") and has(t, r"`outline` \(the focus ring around a link or an input\) and `box-shadow` are painted \*\*around\*\* the border box but take \*\*no space\*\*")
+            and has(t, r"`body` \| `margin: 8px`") and has(t, r"`p` \| `margin: 1em 0` \(`16px` above and below\)") and has(t, r"about `21px`") and has(t, r"`padding-left: 40px`") and has(t, r"`scrollWidth` is `300`, `scrollHeight` is `200`")
+            and has(t, r"\| Top / bottom \*\*margin\*\* \| Yes \| \*\*Ignored\*\* \| Yes \|"))
+    return ok and good, (
+        f"inline <span> with margin 50px 30px / padding 40px 10px: vertical padding paints ({il['paddingPaints']}) but the 20px paragraph stays {il['paraH']}px and the next one starts at {il['nextTop']}; horizontal margin {il['marginLeft']} works; a 20px border does not push either ({il['borderNextGap']}); "
+        f"width/height ignored on inline ({bi['inlineW']:.0f}px), respected on inline-block ({bi['inlineBlock']}); overflow: scrollWidth/Height {ov['visible']['scrollW']}/{ov['visible']['scrollH']}, still clipped box {ov['hidden']['offH']}px; outline + box-shadow take no space (offsetWidth {ou['offsetW']}, next box at {ou['nextTop']}); "
+        f"Chromium defaults: body {ua['body']}, p {ua['p']}, h1 {ua['h1']}, ul {ua['ul']}, ol {ua['ol']}; note says all of this: {good}")
+
+
+def box_exercises_answers(B):
+    t = note(BX)
+    ex, bb = B["bx_exercises"], B["bx_exercises_bb"]
+    if len(ex) != 4:
+        return False, f"expected 4 exercises (css + html) in the note, found {len(ex)}"
+    e1, e2, e3, e4 = ex
+    answers = re.findall(r"<summary>Answer</summary>\n\n(.*?)\n\n</details>", t, re.S)
+    ok = (e1["ex1"]["offW"] == 350 and e1["ex1"]["offH"] == 130 and e1["ex1"]["marginW"] == 380 and e1["ex1"]["marginH"] == 160
+          and e2["ex2"]["offW"] == 300 and e2["ex2"]["offH"] == 100 and e2["ex2"]["contentW"] == 250 and e2["ex2"]["contentH"] == 70 and e2["ex2"]["marginW"] == 330 and e2["ex2"]["marginH"] == 130
+          and e3["b"]["top"] - e3["a"]["bottom"] == 15 and e4["child"]["offW"] == 424 and e4["parent"]["offW"] == 400 and bb[3]["child"]["offW"] == 400)
+    good = (len(answers) == 4 and all(s in answers[0] for s in ("350px", "130px", "380px", "160px")) and all(s in answers[1] for s in ("300px", "250px", "70px", "330px", "130px"))
+            and "15px" in answers[2] and "25px" in answers[2] and has(answers[3], r"= 424px`") and has(answers[3], r"by `24px`"))
+    return ok and good, (f"exercise 1 -> {e1['ex1']['offW']}x{e1['ex1']['offH']}, margin box {e1['ex1']['marginW']}x{e1['ex1']['marginH']}; exercise 2 (border-box) -> {e2['ex2']['offW']}x{e2['ex2']['offH']}, content {e2['ex2']['contentW']}x{e2['ex2']['contentH']}, margin box {e2['ex2']['marginW']}x{e2['ex2']['marginH']}; "
+                         f"exercise 3 -> gap {e3['b']['top'] - e3['a']['bottom']}px; exercise 4 -> child {e4['child']['offW']}px in a {e4['parent']['offW']}px parent, border-box {bb[3]['child']['offW']}px; every number in the 4 answers matches: {good}")
+
+
+def box_images_exist():
+    ps = [ROOT / "static" / "css-box-model.png", ROOT / "static" / "css-box-sizing.png"]
+    t = note(BX)
+    refs = "css-box-model.png" in t and "css-box-sizing.png" in t
+    return all(p.exists() and p.stat().st_size > 2000 for p in ps) and refs, f"the two pictures of the box-model note are real Chromium renderings of real elements: files exist {[p.exists() for p in ps]}, referenced in the note {refs}"
+
+
 def bootstrap_sri():
     path = os.environ.get("BOOTSTRAP_CSS")
     if not (path and Path(path).exists()):
@@ -823,6 +1036,12 @@ if __name__ == "__main__":
         check(E, "width/height attributes on <img> are recommended (layout shift), not discouraged", img_size_advice)
         check(E, "cross-reference points to the real file name", html_cross_refs)
         check(T, "<th> bold+centred, separate borders by default, the parser inserts <tbody>", lambda: table_facts(B))
+        check(BX, "box model sizes: 200x100 content + padding 30 + border 20 + margin 40 = 300x200 (border box) / 380x280 (margin box); the two pictures are real elements", lambda: box_sizes(B))
+        check(BX, "box-sizing: width:100% overflow, auto width, max/min-width, border-box clamp, calc(), not inherited, % widths", lambda: box_sizing_table(B))
+        check(BX, "shorthand order, padding / border / margin rules (negative, %, border-style gotcha, auto and flex centring)", lambda: box_layers(B))
+        check(BX, "margin collapsing: siblings, negative margins, flex/grid/float, parent and first child (what stops it)", lambda: box_margin_collapse(B))
+        check(BX, "inline vs inline-block, overflow and scroll sizes, outline / box-shadow take no space, browser default margins", lambda: box_display_overflow_defaults(B))
+        check(BX, "the four practice exercises and their answers", lambda: box_exercises_answers(B))
         check(C, "cascade cases 1-5 (order, ID vs class, inline, !important, equal !important)", lambda: cascade(B))
         check(C, "the note's own Case 1-5 examples render the colour each one claims", lambda: case_examples_render(B))
         check(C, "specificity is (IDs, classes/attrs/pseudo-classes, elements), not a sum; `*` = 0; :where = 0, :is = argument", lambda: specificity_is_not_a_sum(B))
@@ -848,6 +1067,7 @@ if __name__ == "__main__":
         check(X, "Bootstrap 5.3.5 integrity hash is correct", lambda: sri)
     check("week2/*.md", "no typos / garbled phrases / stale component names", wording_checks)
     check(E + ", " + H, "the rendered outputs shown in the notes are real screenshots (static/html-text-formatting.png, html-block-inline.png)", text_screenshot_exists)
+    check(BX, "the box-model pictures exist (static/css-box-model.png, css-box-sizing.png)", box_images_exist)
     check("week2/*.md", "no VitePress-only syntax (:::, ==, ```lang[label], Vue components)", no_vitepress_syntax)
     check("week2/*.md", "no HTML that GitHub strips (style=, class=, &emsp;) outside code blocks", no_stripped_html)
     check("week2/*.md", "GitHub alerts written correctly", alerts_valid)
