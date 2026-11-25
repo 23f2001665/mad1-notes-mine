@@ -59,7 +59,7 @@ tcp --> domain --> http --"hyperlinks (URLs)"--> web
 You will learn about *HTTP methods* in greater detail in [Week 6](../week6/6-Rest-APIs.md)
 [HTTPS is HTTP + encryption (TLS)](../week9/9-https-logging.md)
 
-### ⭐Checkout [Curl Commands](../week5/5-curl-server.md#curl-commands) from Week-5
+### ⭐Try it yourself: [`curl`, `python -m http.server` and `nc`](1-5-curl-http-server-netcat.md) (basics), then the [Curl Commands](../week5/5-curl-server.md#curl-commands) from Week-5
 
 ## Transmission Control Protocol
 **Transport Layer that ensures data gets delivered correctly (Accuracy > Speed)**
