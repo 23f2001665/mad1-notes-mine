@@ -1,108 +1,200 @@
 # Basic DOM Manipulation
 
-In this section, we will learn how to manipulate the Document Object Model (DOM) using JavaScript. The DOM is a programming interface for web documents that represents the structure of a document as a tree of objects. It allows us to access and manipulate the content, structure, and style of a web page dynamically.
+The **Document Object Model (DOM)** is the browser's live, in-memory representation of a web page: a **tree of objects** that JavaScript can read and change. When the DOM changes, the browser updates what is on screen, with **no reload and no request to the server**. This is how every dynamic page works.
 
-## Understanding the DOM
-
-The DOM represents the structure of an HTML document as a tree of nodes. Each node represents an element, attribute, or piece of text in the document. The DOM provides methods and properties to access and manipulate these nodes. For example, you can use the `document.getElementById()` method to access an element by its ID, or the `document.querySelector()` method to access an element using a CSS selector.
-
-## Selecting Elements
-
-To manipulate the DOM, you first need to select the elements you want to work with. There are several methods for selecting elements in the DOM:
-
-- `document.getElementById(id)`: Selects an element by its ID.
-- `document.getElementsByClassName(className)`: Selects all elements with a given class name.
-- `document.getElementsByTagName(tagName)`: Selects all elements with a given tag name.
-- `document.querySelector(selector)`: Selects the first element that matches a CSS selector.
-- `document.querySelectorAll(selector)`: Selects all elements that match a CSS selector.
-
-## Altering Element Content
-
-Once you have selected an element, you can alter its content using properties like `innerHTML`, `textContent`, or `innerText`. For example:
-
-```javascript
-const element = document.getElementById('myElement');
-element.innerHTML = 'This is new content'; // Changes the HTML content of the element
-element.textContent = 'This is new text'; // Changes the text content of the element
+```mermaid
+flowchart TD
+  document --> html
+  html --> head
+  html --> body
+  head --> title
+  body --> h2["h2 id=title"]
+  body --> p["p class=highlight"]
+  body --> ul["ul id=list"]
+  ul --> li1["li"]
+  ul --> li2["li"]
 ```
 
-## Altering Element Attributes
+Every box is a **node**: an element (`<h2>`), a piece of text, or an attribute. Elements have a parent, children and siblings, and the browser provides methods to walk and modify the tree.
 
-You can also change the attributes of an element using the `setAttribute()` method or by directly modifying the attribute properties. For example:
+> [!NOTE]
+> **The DOM is not the HTML source.** The source is the text the server sent; the DOM is what the browser built from it *plus* every later change made by JavaScript. For the client-side-rendered page of [Frontend Fundamentals](8-frontend.md#seeing-the-difference), "view source" (and `curl`) shows no fruit names, while the DOM, which you can inspect in DevTools' *Elements* tab, contains the three `<li>` elements.
 
-```javascript
-const element = document.getElementById('myElement');
-element.setAttribute('class', 'newClass'); // Sets the class attribute to 'newClass
-element.id = 'newId'; // Changes the ID of the element to 'newId'
+## The page used in the examples
+
+All snippets below act on this page. Try them in the browser console (`F12`) while it is open, or put them in a `<script>` at the end of `<body>`.
+
+```html
+<body>
+  <h2 id="title" class="highlight">Welcome</h2>
+  <p class="highlight">First paragraph</p>
+  <ul id="list">
+    <li>one</li>
+    <li>two</li>
+  </ul>
+  <button id="myButton">Click me</button>
+  <div id="myElement">Original text</div>
+  <div id="oldElement">I will be removed</div>
+</body>
 ```
 
-## Altering Element Styles
+## Selecting elements
 
-You can change the styles of an element using the `style` property. For example:
+You must first **get a reference** to an element before changing it.
+
+| Method | Returns | When nothing matches |
+| ------ | ------- | -------------------- |
+| `document.getElementById("id")` | the element | `null` |
+| `document.getElementsByClassName("c")` | live `HTMLCollection` | empty collection |
+| `document.getElementsByTagName("p")` | live `HTMLCollection` | empty collection |
+| `document.querySelector("css selector")` | the **first** match | `null` |
+| `document.querySelectorAll("css selector")` | static `NodeList` | empty `NodeList` (length 0) |
 
 ```javascript
-const element = document.getElementById('myElement');
-element.style.color = 'red'; // Changes the text color to red
-element.style.backgroundColor = 'yellow'; // Changes the background color to yellow
+const title = document.getElementById("title");        // <h2 id="title">
+const first = document.querySelector(".highlight");    // first element with class "highlight"
+const all = document.querySelectorAll(".highlight");   // both of them
+console.log(all.length);                               // 2
 ```
 
-## Adding and Removing Elements
+Notes:
 
-You can create new elements using the `document.createElement()` method and add them to the DOM using methods like `appendChild()`, `insertBefore()`, or `replaceChild()`. You can also remove elements using the `removeChild()` method. For example:
+* `querySelector(All)` accepts any **CSS selector** (`#id`, `.class`, `ul > li`, `input[type="email"]`), which makes it the most flexible and the most used.
+* `getElementsBy…` return a **live** `HTMLCollection` (it updates by itself when the page changes), while `querySelectorAll` returns a **static** snapshot `NodeList`. In a test on the page above, after adding a third element with class `highlight`, the live collection reported 3 but the earlier `querySelectorAll` result still said 2.
+* Check for `null` before using the result of `getElementById` / `querySelector`, or you will get `Cannot set properties of null`.
+
+## Changing content
 
 ```javascript
-const newElement = document.createElement('div'); // Creates a new div element
-newElement.textContent = 'This is a new element'; // Sets the text content of the new element
-document.body.appendChild(newElement); // Adds the new element to the end of the body
-const oldElement = document.getElementById('oldElement');
-document.body.removeChild(oldElement); // Removes the old element from the body
+const box = document.getElementById("myElement");
+box.textContent = "This is new text";      // sets the TEXT
+box.innerHTML = "<b>This is bold</b>";     // sets HTML: the <b> becomes a real element
 ```
 
-## Event Handling
+| Property | Reads / writes | Notes |
+| -------- | -------------- | ----- |
+| `textContent` | all the text inside, as plain text | Fast; includes text of hidden elements; **safe** |
+| `innerText` | the text *as displayed* | Skips hidden elements (`display:none`); forces a layout, so slower |
+| `innerHTML` | the HTML markup inside, as a string | The string is **parsed as HTML** |
 
-You can also add event listeners to elements to respond to user interactions. For example:
+For `<div>old <b>bold</b> <span style="display:none">hidden</span></div>`: `innerHTML` is `old <b>bold</b> <span style="display:none">hidden</span>`, `textContent` is `old bold hidden`, and `innerText` is `old bold`. Setting `textContent = "<i>x</i>"` shows the literal characters `<i>x</i>` (no `<i>` element is created), while setting `innerHTML = "<i>x</i>"` creates a real `<i>` element.
+
+> [!WARNING]
+> **Never put user-supplied text into `innerHTML`.** The browser parses it as HTML and executes event-handler attributes. In a test, `div.innerHTML = '<img src="x" onerror="window.pwned = 1">'` **ran the `onerror` code**; with `div.textContent = '<img ...>'` nothing ran and no element was created. (A `<script>` tag inserted through `innerHTML` is not run, but handlers like `onerror` are.) This is **XSS** (cross-site scripting), covered in [Week 9](../week9/9-week-index.md). Use `textContent` for text, and `innerHTML` only for markup you wrote yourself.
+
+## Changing attributes
 
 ```javascript
-const button = document.getElementById('myButton');
-button.addEventListener('click', function() {
-    alert('Button was clicked!');
+const box = document.getElementById("myElement");
+box.setAttribute("class", "newClass");   // set an attribute by name
+box.id = "newId";                        // or through the property of the same name
+```
+
+* After the `id` changes, `document.getElementById("myElement")` returns `null`, because the old id no longer exists.
+* To add/remove a single class, do not overwrite the whole attribute. Use **`classList`**:
+
+```javascript
+const para = document.querySelector("p");
+para.classList.add("big");        // adds "big", keeps other classes
+para.classList.toggle("big");     // removes it again (adds if absent)
+```
+
+* `getAttribute` always returns a **string** (or `null` if absent). `setAttribute("data-x", 5)` stores `"5"`. Custom `data-*` attributes are available as `element.dataset.x`.
+
+## Changing styles
+
+```javascript
+const box = document.getElementById("myElement");
+box.style.color = "red";                 // CSS: color
+box.style.backgroundColor = "yellow";    // CSS: background-color  (camelCase in JavaScript)
+```
+
+CSS names with a hyphen become **camelCase** in the `style` property (`background-color` → `backgroundColor`); `box.style["background-color"]` also works. `element.style` reads and writes the **inline style** only. To read the style the browser actually *applied* (from all stylesheets), use `getComputedStyle(box).color`, which returns `rgb(255, 0, 0)` after the code above.
+
+In bigger projects, prefer changing a **class** with `classList` and keeping the actual colours in CSS, so appearance stays in the stylesheet.
+
+## Adding and removing elements
+
+```javascript
+const list = document.getElementById("list");
+
+const item = document.createElement("li");    // 1. create (not yet on the page)
+item.textContent = "three";                   // 2. fill
+list.appendChild(item);                       // 3. attach: it appears at the END of the list
+
+const first = document.createElement("li");
+first.textContent = "zero";
+list.insertBefore(first, list.firstElementChild);   // insert before a reference node
+
+const two = list.children[2];                 // the original "two"
+const replacement = document.createElement("li");
+replacement.textContent = "TWO";
+list.replaceChild(replacement, two);          // replace one child by another
+
+list.removeChild(list.lastElementChild);      // remove a child
+```
+
+Starting from `one, two` this produces: `zero, one, TWO`. (`appendChild` added `three`, `insertBefore` put `zero` first, `replaceChild` swapped `two` for `TWO`, and `removeChild` removed `three`, the last child.)
+
+Points that surprise students:
+
+* `firstChild` / `lastChild` also count the **whitespace text** between tags, so for elements use `firstElementChild`, `lastElementChild` and `children`.
+* A node can be in **one place only**. Appending a node that is already in the tree **moves** it (in a test, after appending the same `<p>` to a second parent, the first parent had 0 children and the second had 1). To copy, use `node.cloneNode(true)`.
+* `parent.removeChild(child)` requires `child` to be a **direct child of `parent`**; otherwise it throws `NotFoundError`. The simpler modern form is **`child.remove()`**.
+* Modern equivalents: `parent.append(...)`, `parent.prepend(...)`, `child.replaceWith(...)`, `child.remove()`.
+
+```javascript
+const oldElement = document.getElementById("oldElement");
+oldElement.remove();                          // same effect as document.body.removeChild(oldElement)
+```
+
+## Event handling
+
+An **event** is something that happens on the page: a click, a key press, a form submit, the page finishing loading. You attach a function (a *listener*) that the browser calls when it happens.
+
+```javascript
+const button = document.getElementById("myButton");
+button.addEventListener("click", function (event) {
+    console.log("Clicked! type: " + event.type + ", target id: " + event.target.id);
 });
 ```
 
-In this example, we add a click event listener to a button element. When the button is clicked, an alert message will be displayed. We will look into various log techniques like `alert()`, `console.log()`, and `debugger` in the same section.
+* The browser passes an **event object**: `event.type` (`"click"`), `event.target` (the element that was clicked), `event.preventDefault()` (cancel the default action, such as submitting a form).
+* You can add **several listeners** to the same event; they run in the order added. The old style `button.onclick = fn` allows only **one**: assigning again replaces the previous function. (In a test, with two `addEventListener` listeners and two `onclick` assignments, a click ran both listeners and only the *last* `onclick`.)
+* Common events: `click`, `input` (every change in a field), `change`, `submit`, `keydown`, `mouseover`, `DOMContentLoaded`, `load`.
 
-## Writing into the DOM
+## `document.write()`: avoid it
 
-You can also write directly into the DOM using the `document.write()` method. However, this method is generally not recommended for modern web development as it can overwrite the entire document if used after the page has loaded. Instead, it is better to use the methods mentioned above to manipulate the DOM safely and effectively.
-
-```javascript
-document.write('This will write directly into the DOM');
-```
-
-This will write the specified text directly into the DOM at the point where the script is executed. If used after the page has loaded, it will overwrite the entire document, so it should be used with caution.
-
-## log Techniques
-
-In addition to manipulating the DOM, it is also important to be able to log information for debugging purposes. There are several techniques for logging information in JavaScript:
-
-- `alert()`: Displays an alert dialog with the specified message. This is a simple way to log information, but it can be intrusive and is not recommended for production use.
-- `console.log()`: Logs information to the browser's console. This is a more flexible and non-intrusive way to log information, and it is widely used for debugging purposes.
-- `console.error()`: Logs error messages to the console. This is useful for logging errors and exceptions in your code.
-- `console.warn()`: Logs warning messages to the console. This can be used to log potential issues in your code that are not necessarily errors.
-- `debugger`: This is a statement that can be used to pause the execution of your code and enter the debugging mode in the browser's developer tools. This allows you to inspect variables, step through your code, and identify issues in a more interactive way.
-
-Let's see an example of using these logging techniques:
+`document.write(text)` inserts text into the page **at the point where the script runs while the page is still loading**. Once the page has finished loading, calling it first **erases the entire document** and starts a new one. In a test, running the line below after the page had loaded, on a page that contained an `<h1>`, left the `<h1>` gone and the body containing only the written text.
 
 ```javascript
-console.log('This is a log message');       //-> Logs a regular message to the console
-console.error('This is an error message');  //-> Logs an error message to the console (RED)
-console.warn('This is a warning message');  //-> Logs a warning message to the console (YELLOW)
-debugger; // This will pause the execution and open the debugger
+document.write("This replaces the whole page if run after loading");
 ```
 
-## Complete Example
+Use the DOM methods above instead.
 
-Here is a complete example that demonstrates basic DOM manipulation and logging techniques:
+## Logging and debugging
+
+| Tool | Effect | Use |
+| ---- | ------ | --- |
+| `alert(msg)` | Pop-up box that **blocks** the page until closed | Quick check only: it is intrusive |
+| `console.log(x)` | Prints to the DevTools *Console* | Normal debugging output |
+| `console.info(x)` | Information message | |
+| `console.warn(x)` | Warning (yellow) | Possible problem |
+| `console.error(x)` | Error (red) | A real problem |
+| `console.table(arr)` | Prints arrays/objects as a table | Inspect data |
+| `debugger;` | Pauses the script **if DevTools is open**, so you can inspect variables and step through | Interactive debugging |
+
+```javascript
+console.log("This is a log message");
+console.warn("This is a warning message");
+console.error("This is an error message");
+debugger;   // pauses here only while DevTools is open; with DevTools closed it does nothing
+```
+
+Each of these calls was seen in a real browser with the console type the table gives (`log`, `warning`, `error`, `info`, `table`), and with no DevTools attached, `debugger;` was simply skipped and the code after it ran.
+
+## Complete example
 
 ```html
 <!DOCTYPE html>
@@ -118,26 +210,55 @@ Here is a complete example that demonstrates basic DOM manipulation and logging 
     <script>
         // Selecting the element
         const element = document.getElementById('myElement');
-        
-        // Altering the content
+
+        // Altering the content and the style
         element.textContent = 'Hello, DOM Manipulation!';
-        
-        // Altering the style
         element.style.color = 'blue';
-        
+
         // Adding an event listener to the button
         const button = document.getElementById('myButton');
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             alert('Button was clicked!');
             console.log('Button click event logged');
             console.warn('This is a warning message');
             console.error('This is an error message');
-            debugger; // This will pause the execution and open the debugger
+            debugger;   // pauses only while DevTools is open
         });
     </script>
 </body>
 </html>
 ```
 
-In this example, we select an element with the ID `myElement`, change its text content and color, and add a click event listener to a button. When the button is clicked, it will display an alert, log messages to the console, and pause execution for debugging.
+The `<script>` is at the end of `<body>` so the elements exist when it runs (see [Where the script goes matters](8-javascript-basics.md#where-the-script-goes-matters)). Loading this page changes the heading text and colour; clicking the button then shows the alert, and logs one `log`, one `warning` and one `error` message.
 
+## Practice questions
+
+<details>
+<summary>1. Which selects <em>all</em> elements with class <code>item</code>, and what does it return when there are none?</summary>
+
+`document.querySelectorAll(".item")` (or `getElementsByClassName("item")`). When there are none you get an empty collection (length 0), not `null`.
+</details>
+
+<details>
+<summary>2. Why is <code>div.innerHTML = userComment</code> dangerous, and what should you use instead?</summary>
+
+The string is parsed as HTML, so a comment like `<img src=x onerror=...>` runs attacker's code (XSS). Use `div.textContent = userComment`, which treats it as plain text.
+</details>
+
+<details>
+<summary>3. After <code>a.appendChild(x); b.appendChild(x);</code> where does <code>x</code> live?</summary>
+
+Only in `b`. A node can have one parent, so appending it again **moves** it. Use `x.cloneNode(true)` to keep a copy in both.
+</details>
+
+<details>
+<summary>4. What is the difference between <code>addEventListener("click", f)</code> and <code>button.onclick = f</code>?</summary>
+
+`addEventListener` can register many listeners for one event; `onclick` holds one function and a new assignment replaces the old one.
+</details>
+
+<details>
+<summary>5. Why does <code>document.write()</code> inside a click handler wipe the page?</summary>
+
+The page has already finished loading, so `document.write` first clears the document and then writes the new text. It is only meaningful while the page is still being parsed, which is why it should be avoided.
+</details>
