@@ -1,29 +1,56 @@
 # Week 8
 
-<SessionResources :week="8" />
-
-This week focuses on **client-side computation, performance, and security in web applications**. You will explore how modern browsers execute code beyond basic HTML/CSS, including **JavaScript engines, WebAssembly (WASM), and validation mechanisms**.
-
-You will learn how asynchronous execution and client-side scripting improve performance, how **WebAssembly enables near-native execution**, and how validation is handled across frontend and backend systems. The week also highlights **security implications**, including sandboxing, denial-of-service (DoS), and misuse of client resources.
+This week moves from the server to the **browser**. Until now the server produced every page. Now you will see how much work the browser itself does: it runs **JavaScript**, rebuilds the page through the **DOM**, talks to the server **asynchronously**, validates forms, and even runs compiled code (**WebAssembly**), all inside a **sandbox** that has to keep a malicious page from harming you.
 
 By the end of this week, you should be able to:
 
-- Understand **client-side computation** and browser execution models
-- Explain the role of **WebAssembly (WASM)** and its performance benefits
-- Differentiate between **client-side and server-side validation**
-- Implement **HTML5 and JavaScript-based validation techniques**
-- Understand **security risks** such as sandbox escape, DoS, and malicious scripts
-- Analyze how browsers manage **resource access and isolation**
-
----
+* explain what **HTML, CSS and JavaScript** each do, and compare **static pages, server-side rendering (SSR) and client-side rendering (CSR)**
+* describe the **original synchronous web model** and the techniques that reduce its cost (**caching, CDN, minification, lazy loading**)
+* explain what **WSGI** is and how a Flask app is called by a web server
+* read and write **basic JavaScript** (variables, functions, objects, loops, template literals) and avoid its classic traps (`==`, `var`, `this`)
+* **select, change, create and remove DOM elements**, handle events, and choose between `innerHTML` and `textContent`
+* explain **asynchronous updates** (`fetch`, `async/await`, AJAX, WebSockets) and why a blocked main thread freezes the page
+* use **HTML5 validation** and the **Constraint Validation API**, and explain why the **server must validate again**
+* explain **WebAssembly**, the browser **sandbox**, same-origin policy/CORS, permissions, **Subresource Integrity**, **crypto-mining**, **DoS**, **CAPTCHA** and **rate limiting**
 
 ### Topics Covered
 
-- **[Client-Side Computation & Performance](8-frontend.md)**
-  JavaScript engines (`V8`, SpiderMonkey), CPU/GPU usage, client load, and implications for performance and energy consumption.
+* **[Frontend Fundamentals](8-frontend.md)**<br>
+  Roles of HTML, CSS and JavaScript, JavaScript engines, static vs SSR vs CSR, the original web model, browser computation and optimisation (caching, CDN, minification, lazy loading)
 
-- **[WebAssembly and Native Capabilities](8-async-dom.md)**
-  Introduction to WASM, stack-based virtual machine, sandboxing, high-performance execution, and compilation using `Emscripten`. Overview of native browser capabilities and associated security concerns.
+* **[WSGI: How a Web Server Talks to Flask](8-wsgi.md)**<br>
+  The WSGI contract (`environ`, `start_response`), middleware, and why we use Gunicorn/Apache rather than Flask's development server in production
 
-- **[Client-Side Validation](8-client-validation.md)**
-  HTML5 form validation (`required`, `pattern`, etc.), JavaScript Constraint Validation API, and comparison with server-side validation. Importance of stateless HTTP and re-validation on the server.Sandboxing, access to native resources, CAPTCHA systems, crypto-mining risks, and Denial of Service (DoS) attacks in client-server environments.
+* **[JavaScript Basics](8-javascript-basics.md)**<br>
+  Types, `==` vs `===`, `var`/`let`/`const`, functions and arrow functions, objects and `this`, loops, template literals, `prompt`/`alert`, and how to include a script
+
+* **[DOM Manipulation](8-basic-dom-manipulation.md)**<br>
+  The DOM tree, selecting elements, changing content/attributes/styles, adding and removing elements, events, `document.write`, and debugging with `console` and `debugger`
+
+* **[Asynchronous Updates](8-async-dom.md)**<br>
+  Blocking vs non-blocking code, `fetch` with `async/await`, AJAX, WebSockets, other browser capabilities (canvas, storage, drag and drop) and accessibility
+
+* **[Client-Side Validation](8-client-validation.md)**<br>
+  HTML5 validation attributes, the Constraint Validation API (`validity`, `setCustomValidity`), and why client-side checks are only a convenience
+
+* **[WebAssembly and Browser Security](8-wasm-and-browser-security.md)**<br>
+  WebAssembly and its stack machine, the sandbox, same-origin policy and CORS, permissions, Subresource Integrity, crypto-mining, DoS, CAPTCHA and rate limiting
+
+### Suggested order
+
+`Frontend → WSGI → JavaScript → DOM → Async → Validation → WASM and security`
+
+Each page ends with short practice questions. `verify_week8_claims.py` in this folder runs the claims of these notes (JavaScript in a real browser, Flask/WSGI/Gunicorn servers, WebAssembly, validation) and reports whether each one holds.
+
+### Key terms
+
+| Term | One-line meaning |
+| ---- | ---------------- |
+| **DOM** | The browser's in-memory tree of the page that JavaScript can read and change |
+| **SSR / CSR** | HTML is assembled on the server / in the browser |
+| **AJAX / `fetch`** | Request data in the background and update part of the page |
+| **WSGI** | Python standard for how a web server calls a web application |
+| **WebAssembly** | Compact binary format that runs in the browser at near-native speed |
+| **Sandbox** | Restricted environment: a page cannot read your files or run OS commands |
+| **SRI** | `integrity="sha384-…"` makes the browser refuse a script that was changed |
+| **CORS** | Server's opt-in that lets another origin read its responses |

@@ -1,172 +1,249 @@
-# Frontend Fundamentals (HTML/CSS/JS)
-The frontend is the part of an application that users directly interact with. It is responsible for presenting data and handling user interactions.
+# Frontend Fundamentals (HTML / CSS / JS)
 
-1. Display visuals and layouts that users see (receive data from server)
-2. Handling user inputs like *clicks, typing* and navigating to the desired page. (send data to server)
-3. Communicating with the backend – sending and receiving data via HTTP requests
+The **frontend** is the part of an application that the user directly sees and touches. It has three jobs:
 
-- Frontend interfaces can include:
-  - Graphic User Interface desktop software
-  - Web browser-based **client**
-  - custom embedded interface (for specific device hardware)
-- **Device/OS-specific interfaces**: UI elements may differ across operating systems (Windows, Android, iOS)
-- Browsers follow common standards (HTML, CSS, JavaScript) to ensure consistent rendering across platforms
-- **Browser-based apps** rely on web standards
-- **Native apps** use platform-specific APIs and provide tighter system integration
-## Components of Web Frontend Development
+1. **Display** what the server sends (text, tables, images, layouts)
+2. **Collect input**: clicks, typing, navigation
+3. **Communicate** with the backend: send the user's input and receive data over HTTP
 
-:::info HTML: **what to show?** 
-Defines the structure of a web page, such as headings, paragraphs, lists, tables, and forms.
-:::
+A frontend does not have to be a web page. It can be a desktop GUI, a mobile app, a browser, or the tiny interface of an embedded device. The differences:
 
-:::info CSS: **how to show?** 
-Controls the visual presentation of a webpage
-- controls layout, colors, spacing and visual design
-- Separation of HTML (structure) and CSS (style) improves flexibility
-- Enables better accessibility and adaptability across devices
-:::
+| Frontend | Built with | Trade-off |
+| -------- | ---------- | --------- |
+| **Browser-based (web) app** | Web standards: HTML, CSS, JavaScript | Runs everywhere a browser runs; limited access to the system |
+| **Native app** | Platform APIs (Windows, Android, iOS) | Tight system integration; written separately for every platform |
 
-:::warning Javascript: Enables **dynamic behaviour and interactivity** UX
--  Manipulating HTML elements `buttons, links, forms`
-- Handles user interactions (clicks, input, navigation)
-- Updating page content without reloading (dynamic UI updates)
-- Communicating with servers using APIs (e.g., via `fetch` or `AJAX`)
-- No machine-endpoints `APIs`: embedded devices (small web client does not have own network protocol → server→ local temperature sensor `HTTP  JS`)
-- Other languages (e.g., Python via `Brython`, `PyScript`) exist but are less common
-- **Transpilation** refers to converting code written in one language (e.g., TypeScript) into JavaScript so it can run in browsers.
+Because every browser implements the same standards, one web page looks (roughly) the same on Windows, Android and iOS. That portability is the main reason web frontends are so common.
 
-1. Chrome/Edge/Brave: `V8` JavaScript Engine
-2. Firefox: `SpiderMonkey`
-3. Safari: `JavaScriptCore`<br>
-In advanced use cases, JavaScript can also run on the server (e.g., `Node.js`)
-:::
+## The three building blocks
 
+| Language | Question it answers | What it does |
+| -------- | ------------------- | ------------ |
+| **HTML** | *What* to show? | Structure and content: headings, paragraphs, lists, tables, forms |
+| **CSS** | *How* to show it? | Presentation: layout, colours, spacing, fonts |
+| **JavaScript** | *What happens* when the user acts? | Behaviour: react to clicks, change the page, talk to servers |
 
-- **Server-Side Rendering (SSR)**: The server generates fully formed HTML pages (e.g., using templating engines like Jinja2 in Flask or Django Templates) and sends them to the browser for immediate display.
-- **Client-Side Rendering (CSR)**: The browser initially loads a minimal HTML shell, and JavaScript dynamically fetches data (typically via APIs returning JSON) to render content in the browser.
+> [!NOTE]
+> **Separation of concerns.** Keeping structure (HTML), style (CSS) and behaviour (JavaScript) apart means you can restyle a site without touching its content, and lets the user's browser apply its own settings (large fonts, dark mode, a screen reader). It also makes the page more accessible, see [Accessibility](8-async-dom.md#accessibility-and-best-practices).
 
-:::warning **SSR** improves initial load performance and SEO, while <br> **CSR** enables richer interactivity and smoother user experiences after load.
-:::
+### What JavaScript is used for
 
-## 1. client-side scripting
+* Manipulating HTML elements (buttons, links, forms): see [DOM Manipulation](8-basic-dom-manipulation.md)
+* Handling user interaction (clicks, typing, navigation)
+* Updating part of a page **without reloading it**
+* Communicating with servers through APIs (`fetch`, AJAX): see [Asynchronous Updates](8-async-dom.md)
 
-Client-side scripting uses JavaScript in the browser to create dynamic behavior without requiring full page reloads.
+JavaScript is the only language every browser runs natively. Other languages reach the browser in one of two ways:
 
+* **Transpilation**: you write TypeScript (or a newer JavaScript version) and a tool *translates* it into plain JavaScript that the browser can run.
+* **WebAssembly**: code in C/C++/Rust is compiled to a binary format that browsers run next to JavaScript: see [WebAssembly](8-wasm-and-browser-security.md#webassembly-wasm).
 
-| Advantages                   | Limitations                                  |
-| ---------------------------- | -------------------------------------------- |
-| Reduces server load | Depends on client device performance ( more resources on `client CPU/GPU`)         |
-| Enables rich interactivity   | Security risks if sensitive logic is exposed to client |
-| Works well with `static` sites | Requires careful API design                  |
+(Projects such as `Brython` and `PyScript` run Python in the browser, but they are built on top of JavaScript/WebAssembly and are far less common.)
 
-- Supports reusable components via frameworks (e.g., `React, Angular, Vue`)
+### JavaScript engines
 
-- **Machine client** using HTTP end-points: these machine may access APIs, `POST` sensor information to data collection sites (monitoring, time series analysis) 
+The program inside the browser that executes JavaScript is the **JavaScript engine**.
 
+| Browser | Engine |
+| ------- | ------ |
+| Chrome, Edge, Brave | **V8** |
+| Firefox | **SpiderMonkey** |
+| Safari | **JavaScriptCore** |
 
-## 2. server-side rendering: Run-time HTML generation 
-HTML is generated dynamically when a user accesses the page
-- Traditional CGI/Web-Services Gateway Interface `WSGI` based apps
-- Python frameworks (Flask, Django)
-- Ruby on Rails
-- PHP-based systems
-- Content Management Systems (e.g., WordPress, Joomla, Drupal)
+JavaScript is not limited to the browser. **Node.js** embeds V8, so the same language can run on a server or on your laptop outside any browser. (This is why the examples in [JavaScript Basics](8-javascript-basics.md) can be tried either in the browser console or with `node`.)
 
-| Advantages                                      | Limitations                           |
-| ----------------------------------------------- | ------------------------------------- |
-| Highly flexible and personalized                | Higher server load as every page has to be generated dynamically  |
-| Supports user authentication and real-time data | Requires optimization (e.g., `caching`) |
-| Easier to manage complex applications with *common layouts & themes* |could lead to more Database hits so higher costs💰 & can impact performance  |
+### Not every client is a person with a browser
 
-- Dynamic pages support real-time customization such as user authentication, personalized content, and time-dependent data.
-- Better control over sensitive data compared to client-side approaches.
+An **embedded device** (for example a temperature sensor) may have no screen, no HTML and no JavaScript. It still talks to the server over HTTP, usually sending JSON to an API endpoint. Such a program is called a **machine client**. The server must expect these too: it does not know (or care) whether a human or a script sent the request.
 
-## 1. Static pages
-Static pages are pre-built HTML files that are served directly to users without modification.
+```bash
+curl -X POST -H "Content-Type: application/json" \
+     -d '{"sensor":"t1","celsius":24.5}' http://localhost:5000/sensor
+```
 
-→ Server simply delivers HTML files without dynamic processing by server<br>
-→ All/most pages are generated ahead of time
+A Flask route that receives it gets the parsed JSON through `request.get_json()` and replies, for example, `{"received": {"celsius": 24.5, "sensor": "t1"}, "type": "application/json"}`. The same fact matters again in [Client-Side Validation](8-client-validation.md): a server that serves a form must still handle requests that never went through that form.
 
-| Advantages                                                                                                      | Limitations                                               |
-| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| High performance: server just picks up file & delivers |  Updates to static content require `redeploying` | 
-| Easy to cache & distribute via CDNs | limited flexibility for personalized content |
-| simple architecture | Limited support for dynamic interactions |
+## Where does the HTML come from?
 
-Modern static sites are often built using static site generators such as: `Jekyll, Hugo, Next.js, Gatsby`
+The central question of this page: **at what moment, and on which machine, is the final HTML put together?**
 
-## 2. Dynamic pages
+| Approach | HTML is produced... | Typical tools |
+| -------- | ------------------- | ------------- |
+| **Static page** | once, **ahead of time** (build/deploy); the server only hands over a file | hand-written HTML, Jekyll, Hugo, Gatsby |
+| **Server-side rendering (SSR)** | on the **server**, for each request | Flask + Jinja2, Django templates, Rails, PHP, WordPress |
+| **Client-side rendering (CSR)** | in the **browser**, by JavaScript, from data fetched as JSON | React, Angular, Vue |
 
-Dynamic pages are generated at runtime on the server based on user input, database queries, or application logic.
+*Static vs dynamic* describes the **content** (the same for everyone and fixed, or personalised and changing). *SSR vs CSR* describes **where the page is assembled**. A dynamic page can be built either way.
+
+> [!NOTE]
+> Frameworks such as **Next.js** can do all three: build some pages ahead of time, render others on the server, and hydrate the rest in the browser. So "Next.js = static site generator" is only part of the picture.
+
+### Seeing the difference
+
+The same fruit list, once rendered on the server and once in the browser:
+
+```python
+from flask import Flask, jsonify, render_template_string
+
+app = Flask(__name__)
+ITEMS = ["apple", "banana", "cherry"]
 
 
-## Original Web Model (Synchronous Page Reload)
-In traditional web applications:
-- client sends a request to the server
-- server responds with a complete HTML page
-- browser renders the entire page
+@app.route("/ssr")
+def ssr():
+    # SSR: the server builds the list, so the HTML already contains the data
+    return render_template_string(
+        "<h1>Fruits</h1><ul>{% for i in items %}<li>{{ i }}</li>{% endfor %}</ul>", items=ITEMS)
 
-For every update:
-- A new request is sent
-- The server returns a full page (HTML, CSS, JS)
-- The browser re-renders everything from scratch
 
-Limitations:
-- High server load due to repeated full-page responses
-- Redundant data transfer
-- Slow updates due to full reloads
+@app.route("/csr")
+def csr():
+    # CSR: the server sends an empty shell and a script; the script fetches the data
+    return """<h1>Fruits</h1><ul id="list"></ul>
+<script>
+fetch('/api/items').then(r => r.json()).then(items => {
+  for (const i of items) {
+    const li = document.createElement('li');
+    li.textContent = i;
+    document.getElementById('list').appendChild(li);
+  }
+});
+</script>"""
 
-::: tip MODERN Browser Workflow to handle load
+
+@app.route("/api/items")
+def api_items():
+    return jsonify(ITEMS)
+```
+
+What was measured when this app was run (Flask, Chromium):
+
+| | `curl /ssr` | `curl /csr` | browser on `/ssr` | browser on `/csr` |
+| - | ----------- | ----------- | ----------------- | ----------------- |
+| Does the downloaded HTML contain `apple`? | yes (`<li>apple</li>`) | **no** | n/a | n/a |
+| HTTP requests the browser makes | n/a | n/a | 1 (`/ssr`) | **2** (`/csr`, then `/api/items`) |
+| `<li>` elements visible after loading | n/a | n/a | 3 | 3 (`apple`, `banana`, `cherry`) |
+
+Both pages look identical to the user, but:
+
+* With **SSR** the first response is already the finished page. Anything that reads only the HTML (a search-engine crawler that does not run JavaScript, a link-preview bot, `curl`) sees the content.
+* With **CSR** the first response is an empty shell. The content appears only after JavaScript runs and a **second request** returns. That is the "extra round trip" that makes the first load slower. After the first load, however, only small JSON responses are needed instead of whole pages.
+
+### Comparison
+
+| Feature | Server-Side Rendering | Client-Side Rendering |
+| ------- | --------------------- | --------------------- |
+| First page load | Faster: content is in the first response | Slower: shell, script, then data requests |
+| SEO | Content is in the HTML, so any crawler sees it | Depends on the crawler running JavaScript (many do, but it is less reliable); pre-rendering helps |
+| Later interaction | Full page reload, or AJAX for parts | Only data is exchanged, so updates feel instant |
+| Server load | Higher: renders every page | Lower: sends data (JSON) |
+| Client load | Low | Higher: the device runs JavaScript |
+| Template logic lives in | Server | Browser |
+| Examples | Flask, Django | React, Angular, Vue |
+
+| Approach | Advantages | Limitations |
+| -------- | ---------- | ----------- |
+| **Static pages** | Very fast, trivially cached, can be served from a CDN, simple to host and secure | Changing content means rebuilding and redeploying; little personalisation |
+| **Server-side rendering** | Flexible and personalised (login, live data); sensitive logic stays on the server | More server work per request; more database hits (cost, latency) unless cached |
+| **Client-side rendering** | Highly interactive; offloads work from the server | Needs a capable device; any logic or data sent to the browser can be read by the user, so it must not contain secrets |
+
+## The original web model: synchronous page reload
+
+In the earliest web applications:
+
+1. The browser sends a request.
+2. The server replies with a **complete HTML page**.
+3. The browser throws away the old page and renders the new one.
+
+*Every* user action that needs new data repeats this cycle, even if only one number on the page changed. Consequences: the server regenerates whole pages (high load), most of the transferred data is a repeat of what the browser already had (redundant transfer), and the user sees the page flash and reload.
+
+(The browser does not necessarily download CSS, JavaScript and images again, because of caching, covered below. The HTML, though, is rebuilt and re-sent each time.)
 
 ```mermaid
 flowchart TD
-  A[User opens webpage / triggers action] --> B[Browser **sends HTTP request to server & waits**]
-  B --> C[Server processes request]
-  C --> D["Server returns response<br>(HTML, CSS, JS, data)"]
-  D --> E[Browser renders page visually]
-  E --> F[Browser spends most time**waiting for user interaction**]
-
-  F --"User interacts (click, form, navigation)"--> G[Browser sends new HTTP request]
+  A["User opens page or triggers an action"] --> B["Browser sends HTTP request and waits"]
+  B --> C["Server processes the request"]
+  C --> D["Server returns a response<br>(HTML, CSS, JS, data)"]
+  D --> E["Browser renders the page"]
+  E --> F["Browser waits for the user"]
+  F -- "user clicks, submits a form, navigates" --> G["Browser sends a new HTTP request"]
   G --> C
-
-  F --"No interaction"--> H[Idle state]
+  F -- "no interaction" --> H["Idle"]
 ```
-Modern browsers perform significant computation;to improve performance and interactivity (from [Original Web Model](#original-web-model-synchronous-page-reload)):
 
-- More processing is shifted to the client:
-  - `JavaScript` execution uses CPU
-  - Graphics and animations may use GPU
-  - May increase energy consumption & resource usage (slow your device like check `Task Manager`)
-- This reduces server load and enables richer user experiences
+## Modern browsers share the work
 
-##### optimization techniques
-1. **Caching**: stores previously fetched data for faster access (to previously viewed data) and to reduce repeated requests
-2. **Content Delivery Networks CDN**: Distribute content geographically to reduce latency
-3. **Minification & Bundling**: Reduce file size for faster loading
-4. **Lazy Loading**: Load resources only when needed
-:::
+To avoid the full-reload cycle, modern pages move part of the work to the browser:
+
+* JavaScript runs on the **CPU** and updates only the part of the page that changed.
+* Animations and graphics may use the **GPU**.
+* The server mostly sends *data* (JSON) rather than whole pages.
+
+This lowers server load and makes pages feel responsive, but the **cost moves to the user's device**: more CPU use, more battery drain, and a slow page on an old phone. (Open the browser's Task Manager, or your OS's, while a heavy page runs, and you can see a tab using real CPU and memory.)
+
+### Optimisation techniques
+
+| Technique | Idea | How it helps |
+| --------- | ---- | ------------ |
+| **Caching** | Keep a copy of something already fetched | Avoids repeating the request, or at least the transfer |
+| **CDN** (Content Delivery Network) | Copies of static files on servers around the world | The user downloads from a nearby server: lower latency, less load on your server |
+| **Minification and bundling** | Remove whitespace/comments, shorten names, merge many files into few | Smaller files and fewer requests. Servers usually also **compress** (gzip/brotli) what they send |
+| **Lazy loading** | Load a resource only when it is about to be needed | The page appears sooner; images the user never scrolls to are never downloaded |
+
+**Caching in detail.** The server can attach validators to a file. Flask's static-file route, for example, sends `ETag` and `Last-Modified` and `Cache-Control: no-cache`. Despite the name, `no-cache` does *not* mean "do not store": it means "you may store it, but **ask me before reusing it**". Asking is cheap:
+
+```bash
+curl -i http://localhost:5000/static/style.css
+# HTTP/1.1 200 OK
+# Cache-Control: no-cache
+# ETag: "1700000000.0-1000-123456789"
+# Last-Modified: Wed, 25 Nov 2026 18:35:07 GMT
+# ... (the whole file follows)
+
+curl -i -H 'If-None-Match: "1700000000.0-1000-123456789"' http://localhost:5000/static/style.css
+# HTTP/1.1 304 NOT MODIFIED
+# (no body: the browser reuses its stored copy)
+```
+
+The server answered `304 Not Modified` with an **empty body** because the `ETag` still matched. (The exact tag value differs for every file.) A `Cache-Control: max-age=...` header goes one step further: the browser reuses the copy without asking at all until it expires.
+
+**Lazy loading** is a one-word change in HTML:
+
+```html
+<img src="photo.jpg" loading="lazy" width="400" height="300">
+```
+
+In a Chromium test page with three images placed far below the fold, the browser fetched all 3 immediately without the attribute, but with `loading="lazy"` it fetched only the one near the viewport until the page was scrolled, and then the other two. (Browsers decide the exact trigger distance; the point is that off-screen images wait.) Giving `width` and `height` lets the browser reserve space so the page does not jump when the image arrives.
 
 ## Summary
 
-- **Content generation**: static build vs runtime rendering
-- **Code reuse**: component-based frameworks improve maintainability
-- **Performance**: balance between client and server workload
-- **Security**: avoid exposing sensitive logic on the client
+* **Content generation**: build-time (static), request-time on the server (SSR), or in the browser (CSR).
+* **Performance** is a balance between client and server work, helped by caching, CDNs, minification and lazy loading.
+* **Security**: whatever runs in the browser is visible to and changeable by the user. Never rely on the client for secrets or for checks that matter.
+* **Code reuse**: component frameworks (React, Angular, Vue) let you build a page from reusable pieces.
 
+## Practice questions
 
-| Feature                   | Server-Side Rendering (SSR)           | Client-Side Rendering (CSR)            |
-|---------------------------|----------------------------------------|----------------------------------------|
-| First Page Load           | Faster                                 | Slower (needs extra round trips)       |
-| SEO Friendliness          | High (content is ready in HTML)        | Lower (unless prerendering is used)    |
-| Interactivity             | Requires full-page reloads or AJAX     | Dynamic updates without reloading      |
-| Server Load               | Higher (renders full pages)            | Lower (renders data only)              |
-| Complexity on Client      | Low                                    | High (JavaScript required)             |
-| Template Logic Location   | Server                                 | Client                                 |
-| Examples                  | `Flask`, `Django`                      | `React`, `Angular`, `Vue`              |
+<details>
+<summary>1. A page shows a product list. <code>curl</code> on the URL returns an HTML file with no products, yet the browser shows them. Which rendering approach is this, and what does the browser do that curl does not?</summary>
 
+Client-side rendering. The browser **executes the JavaScript** in the shell, which calls an API (a second request) and builds the list with the DOM. `curl` only downloads the HTML and never runs the script.
+</details>
 
-| Approach                  | Advantages                              | Limitations                                  |
-| ------------------------- | --------------------------------------- | -------------------------------------------- |
-| **Static Pages**          | Very fast, cache-friendly               | Limited personalization                      |
-| **Server-Side Rendering** | Flexible, secure handling of data       | High server load                             |
-| **Client-Side Rendering** | Highly interactive, reduces server work | Higher client resource usage, security risks |
+<details>
+<summary>2. Is a static site the same as a site with no JavaScript?</summary>
+
+No. "Static" means the HTML files are prepared ahead of time and served unchanged. Those pages can still contain JavaScript that fetches data or reacts to clicks.
+</details>
+
+<details>
+<summary>3. A server replies <code>304 Not Modified</code>. What was sent and what is saved?</summary>
+
+Only headers: there is no body. The browser had sent the validator (`If-None-Match` / `If-Modified-Since`), the server found nothing changed, so the browser reuses its stored copy. The saved resource is the transfer of the file itself, not the round trip.
+</details>
+
+<details>
+<summary>4. Give one advantage and one disadvantage of moving work to the client.</summary>
+
+Advantage: lower server load and a more responsive page (only data is exchanged). Disadvantage: the user's device does more work (battery, slow hardware), and anything the client does can be inspected or bypassed, so it cannot be trusted.
+</details>
